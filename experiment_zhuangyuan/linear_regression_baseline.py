@@ -1,6 +1,6 @@
 # Linear regression baseline for feature engineering.
 #
-# Public score: 0.0651228
+# Public score: 0.0649163
 from sklearn.linear_model import LinearRegression
 import common_utils as cu
 

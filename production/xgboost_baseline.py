@@ -1,7 +1,7 @@
 # XGBoost baseline for feature engineering.
 #
-# Training result: [282] train-mae:0.050762 holdout-mae:0.052677
-# Public score: 0.0646989
+# Training result: [192] train-mae:0.051412 holdout-mae:0.051941
+# Public score: 0.0646266
 import common_utils as cu
 import xgboost as xgb
 

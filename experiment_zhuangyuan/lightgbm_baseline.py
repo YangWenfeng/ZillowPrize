@@ -1,7 +1,7 @@
 # LightGBM baseline for feature engineering.
 #
-# Training result: [1355] train's l1: 0.0517065 holdout's l1: 0.0525932
-# Public score: 0.0646075
+# Training result: [1108] train's l1: 0.0518643 holdout's l1: 0.0518882
+# Public score: 0.0645942
 import common_utils as cu
 import lightgbm as lgbm
 
