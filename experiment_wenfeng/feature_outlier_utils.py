@@ -33,7 +33,11 @@ def get_feature_outlier_index(pd, feature, method):
 
 def replace_feature_outlier_value(df, feature, indexs, value):
     new_df = df.copy()
-    new_df[feature][indexs] = value
+    new_df[feature] = new_df[feature].astype(np.float32)  # can set int series with nan value
+    for index in indexs:
+        new_df.set_value(index, feature, value)
+    # This is incorrect, but I don't know why?
+    # new_df[feature][indexs] = value
     return new_df
 
 def replace_feature_outlier_iqr_boundary(df, feature):

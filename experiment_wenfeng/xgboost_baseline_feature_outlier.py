@@ -51,9 +51,9 @@ def run_feature_outlier():
             xgbm = XGBoostModel()
             xgbm.train(X_train, y_train, X_holdout, y_holdout)
 
-            result.append([name, xgbm.base_model.best_score])
+            result.append([feature, name, xgbm.base_model.best_score])
 
-    print '\n'.join(','.join(one) for one in result)
+    print '\n'.join(','.join(str(o) for o in one) for one in result)
 
 def run():
     # read train data.
