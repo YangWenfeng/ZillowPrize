@@ -2,9 +2,13 @@
 # baseline
 # Training result: [192] train-mae:0.051412 holdout-mae:0.051941
 # Public score: 0.0646266
-# Transform, replace feature outlier: yearbuilt, taxamount
-# Training result:
-# Public score:
+# iqr - inter_quartile_range, spe - small_probability_event,
+# yearbuilt iqr_boundary, taxamount iqr_boundary
+# Training result: [173] train-mae:0.051569 holdout-mae:0.051923
+# Public score: 0.0646131, improve 1.88% = (0.0646266 - 0.0646131)/(0.0646266 - 0.0639094)
+# yearbuilt spe_median, taxamount iqr_boundary
+# Training result: [153] train-mae:0.051784	holdout-mae:0.051866
+# Public score: 0.0646042, improve 3.12% = (0.0646266 - 0.0646042)/(0.0646266 - 0.0639094)
 import common_utils as cu
 import xgboost as xgb
 from feature_outlier_utils import *
@@ -66,10 +70,11 @@ def run():
     print('Transform, replace feature outliers.')
     X['yearbuilt'] = 2016 - X['yearbuilt']
 
-    yearbuilt_q1, yearbuilt_q3 = get_series_q1q3(X['yearbuilt'])
+    yearbuilt_llimit, yearbuilt_ulimit = get_series_percentile(X['yearbuilt'])
+    yearbuilt_median = X['yearbuilt'].median()
     taxamount_q1, taxamount_q3 = get_series_q1q3(X['taxamount'])
 
-    X['yearbuilt'] = replace_with_iqr_boundary(X['yearbuilt'], yearbuilt_q1, yearbuilt_q3)
+    X['yearbuilt'] = replace_with_value(X['yearbuilt'], yearbuilt_llimit, yearbuilt_ulimit, yearbuilt_median)
     X['taxamount'] = replace_with_iqr_boundary(X['taxamount'], taxamount_q1, taxamount_q3)
 
     # get CV from train data.
@@ -82,7 +87,7 @@ def run():
     # read test data.
     T = cu.get_test_data(encode_non_object=False)
     T['yearbuilt'] = 2016 - T['yearbuilt']
-    T['yearbuilt'] = replace_with_iqr_boundary(T['yearbuilt'], yearbuilt_q1, yearbuilt_q3)
+    T['yearbuilt'] = replace_with_value(T['yearbuilt'], yearbuilt_llimit, yearbuilt_ulimit, yearbuilt_median)
     T['taxamount'] = replace_with_iqr_boundary(T['taxamount'], taxamount_q1, taxamount_q3)
 
     # predict result.
@@ -97,5 +102,5 @@ if __name__ == "__main__":
     run()
     # run_feature_outlier()
     # Feature outlier result
-    # yearbuilt,iqr_boundary,0.051907
+    # yearbuilt,spe_median,0.051851
     # taxamount,iqr_boundary,0.051929
