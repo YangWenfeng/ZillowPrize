@@ -64,7 +64,7 @@ def replace_feature_outlier_boundary(pd_series, lpercentile=0.5, upercentile=99.
 
     return new_series
 
-def generate_series(pd_series):
+def generate_feature_replace_outlier(pd_series):
     ret = OrderedDict()
 
     outlier_indexs_iqr = get_feature_outlier_index(pd_series, 'inter_quartile_range')
@@ -105,6 +105,6 @@ if __name__ == '__main__':
     # new_numbers_series = replace_feature_outlier_value(numbers_series, outlier_indexs_spe, np.NaN)
     # print numbers_series, new_numbers_series
 
-    for name, series in generate_series(numbers_series).items():
+    for name, series in generate_feature_replace_outlier(numbers_series).items():
         print name
         print series
