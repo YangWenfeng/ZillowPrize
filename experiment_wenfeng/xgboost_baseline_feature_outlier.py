@@ -37,14 +37,16 @@ def run_feature_outlier():
     # transform feature 'yearbuilt'
     X['yearbuilt'] = 2016 - X['yearbuilt']
 
-    from feature_outlier_utils import generate_df
+    from feature_outlier_utils import generate_series
 
     result = []
     for feature in ['taxamount', 'yearbuilt']:
-        for name, newX in generate_df(X, feature).items():
+        for name, newSeries in generate_series(X[feature]).items():
             print 'Try to deal with feature[%s] outlier by [%s].' % (feature, name)
 
             # get CV from train data.
+            newX = X.copy()
+            newX[feature] = newSeries
             X_train, y_train, X_holdout, y_holdout = cu.get_cv(newX, y)
 
             # train model.

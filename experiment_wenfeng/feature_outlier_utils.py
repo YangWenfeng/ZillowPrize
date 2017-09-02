@@ -5,10 +5,9 @@ from collections import OrderedDict
 __author__ = 'yangwenfeng'
 
 
-def get_feature_outlier_index(pd, feature, method):
+def get_feature_outlier_index(pd_series, method):
     """
-    :param pd:
-    :param feature:
+    :param pd_series:
     :param method:
     :return: index list of outliers
     """
@@ -16,94 +15,96 @@ def get_feature_outlier_index(pd, feature, method):
     assert method in methods
 
     ret = None
-    values = pd[feature].values
+    series = pd_series[pd_series.notnull()]
+    values = series.values
 
     if method == methods[0]:
         q1 = np.percentile(values, 25)
         q3 = np.percentile(values, 75)
         iqr = q3 - q1
-        ret = [i for i, v in enumerate(values) if v < q1-1.5*iqr or v > q3+1.5*iqr]
+        ret = [i for i, v in zip(series.index, series.values) if v < q1-1.5*iqr or v > q3+1.5*iqr]
 
     elif method == methods[1]:
         ulimit = np.percentile(values, 99.5)
         llimit = np.percentile(values, 0.05)
-        ret = [i for i, v in enumerate(values) if v > ulimit or v < llimit]
+        ret = [i for i, v in zip(series.index, series.values) if v > ulimit or v < llimit]
 
     return ret
 
-def replace_feature_outlier_value(df, feature, indexs, value):
-    new_df = df.copy()
-    new_df[feature] = new_df[feature].astype(np.float32)  # can set int series with nan value
-    for index in indexs:
-        new_df.set_value(index, feature, value)
-    # This is incorrect, but I don't know why?
-    # new_df[feature][indexs] = value
-    return new_df
+def replace_feature_outlier_value(pd_series, indexs, value):
+    new_series = pd_series.copy()
+    new_series[indexs] = value
 
-def replace_feature_outlier_iqr_boundary(df, feature):
-    new_df = df.copy()
+    return new_series
 
-    q1 = np.percentile(new_df[feature].values, 25)
-    q3 = np.percentile(new_df[feature].values, 75)
+def replace_feature_outlier_iqr_boundary(pd_series):
+    new_series = pd_series.copy()
+    series = pd_series[pd_series.notnull()]
+
+    q1 = np.percentile(series.values, 25)
+    q3 = np.percentile(series.values, 75)
     iqr = q3 - q1
     llimit = q1 - 1.5 * iqr
     ulimit = q3 + 1.5 * iqr
 
-    new_df[feature].loc[new_df[feature] > ulimit] = ulimit
-    new_df[feature].loc[new_df[feature] < llimit] = llimit
+    new_series[new_series > ulimit] = ulimit
+    new_series[new_series < llimit] = llimit
 
-    return new_df
+    return new_series
 
-def replace_feature_outlier_boundary(df, feature, lpercentile=0.5, upercentile=99.5):
-    new_df = df.copy()
+def replace_feature_outlier_boundary(pd_series, lpercentile=0.5, upercentile=99.5):
+    new_series = pd_series.copy()
+    series = pd_series[pd_series.notnull()]
 
-    llimit = np.percentile(new_df[feature].values, lpercentile)
-    ulimit = np.percentile(new_df[feature].values, upercentile)
+    llimit = np.percentile(series.values, lpercentile)
+    ulimit = np.percentile(series.values, upercentile)
 
-    new_df[feature].loc[new_df[feature] > ulimit] = ulimit
-    new_df[feature].loc[new_df[feature] < llimit] = llimit
+    new_series.loc[new_series > ulimit] = ulimit
+    new_series.loc[new_series < llimit] = llimit
 
-    return new_df
+    return new_series
 
-def generate_df(df, feature):
+def generate_series(pd_series):
     ret = OrderedDict()
 
-    outlier_indexs_iqr = get_feature_outlier_index(df, feature, 'inter_quartile_range')
-    outlier_indexs_spe = get_feature_outlier_index(df, feature, 'small_probability_event')
+    outlier_indexs_iqr = get_feature_outlier_index(pd_series, 'inter_quartile_range')
+    outlier_indexs_spe = get_feature_outlier_index(pd_series, 'small_probability_event')
+    print 'Feature Outlier: len(outlier_indexs_iqr) = %d, len(outlier_indexs_spe) = %d' % (
+        len(outlier_indexs_iqr), len(outlier_indexs_spe))
 
-    ret['inter_quartile_range_replace_nan'] = \
-        replace_feature_outlier_value(df, feature, outlier_indexs_iqr, np.NAN)
+    ret['iqr_nan'] = \
+        replace_feature_outlier_value(pd_series, outlier_indexs_iqr, np.NAN)
 
-    ret['inter_quartile_range_replace_median'] = \
-        replace_feature_outlier_value(df, feature, outlier_indexs_iqr, df[feature].median())
+    ret['iqr_median'] = \
+        replace_feature_outlier_value(pd_series, outlier_indexs_iqr, pd_series.median())
 
-    ret['inter_quartile_range_replace_boundary'] = \
-        replace_feature_outlier_iqr_boundary(df, feature)
+    ret['iqr_boundary'] = \
+        replace_feature_outlier_iqr_boundary(pd_series)
 
-    ret['small_probability_event_replace_nan'] = \
-        replace_feature_outlier_value(df, feature, outlier_indexs_spe, np.NAN)
+    ret['spe_nan'] = \
+        replace_feature_outlier_value(pd_series, outlier_indexs_spe, np.NAN)
 
-    ret['small_probability_event_replace_median'] = \
-        replace_feature_outlier_value(df, feature, outlier_indexs_spe, df[feature].median())
+    ret['spe_median'] = \
+        replace_feature_outlier_value(pd_series, outlier_indexs_spe, pd_series.median())
 
-    ret['small_probability_event_replace_boundary'] = \
-        replace_feature_outlier_boundary(df, feature)
+    ret['spe_boundary'] = \
+        replace_feature_outlier_boundary(pd_series)
 
     return ret
 
 
 if __name__ == '__main__':
-    numbers = np.array([1, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 22])
-    numbers_df = pd.DataFrame({'numbers': numbers})
+    numbers = np.array([np.NAN, 1, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, np.NAN, 22])
+    numbers_series = pd.Series(numbers)
 
-    outlier_indexs_iqr = get_feature_outlier_index(numbers_df, 'numbers', 'inter_quartile_range')
-    outlier_indexs_spe = get_feature_outlier_index(numbers_df, 'numbers', 'small_probability_event')
+    outlier_indexs_iqr = get_feature_outlier_index(numbers_series, 'inter_quartile_range')
+    outlier_indexs_spe = get_feature_outlier_index(numbers_series, 'small_probability_event')
     print 'outlier_indexs_iqr', outlier_indexs_iqr
     print 'outlier_indexs_spe', outlier_indexs_spe
-    #
-    # new_numbers_df = replace_feature_outlier_value(numbers_df, 'numbers', outlier_indexs_spe, np.NaN)
-    # print numbers_df, new_numbers_df
 
-    for name, df in generate_df(numbers_df, 'numbers').items():
+    # new_numbers_series = replace_feature_outlier_value(numbers_series, outlier_indexs_spe, np.NaN)
+    # print numbers_series, new_numbers_series
+
+    for name, series in generate_series(numbers_series).items():
         print name
-        print df
+        print series
