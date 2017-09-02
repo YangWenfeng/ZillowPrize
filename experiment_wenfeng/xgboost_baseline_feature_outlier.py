@@ -2,6 +2,9 @@
 # baseline
 # Training result: [192] train-mae:0.051412 holdout-mae:0.051941
 # Public score: 0.0646266
+# Transform, replace feature outlier: yearbuilt, taxamount
+# Training result:
+# Public score:
 import common_utils as cu
 import xgboost as xgb
 from feature_outlier_utils import *
@@ -62,8 +65,12 @@ def run():
 
     print('Transform, replace feature outliers.')
     X['yearbuilt'] = 2016 - X['yearbuilt']
-    X['yearbuilt'] = replace_feature_outlier_iqr_boundary(X['yearbuilt'])
-    X['taxamount'] = replace_feature_outlier_iqr_boundary(X['taxamount'])
+
+    yearbuilt_q1, yearbuilt_q3 = get_series_q1q3(X['yearbuilt'])
+    taxamount_q1, taxamount_q3 = get_series_q1q3(X['taxamount'])
+
+    X['yearbuilt'] = replace_with_iqr_boundary(X['yearbuilt'], yearbuilt_q1, yearbuilt_q3)
+    X['taxamount'] = replace_with_iqr_boundary(X['taxamount'], taxamount_q1, taxamount_q3)
 
     # get CV from train data.
     X_train, y_train, X_holdout, y_holdout = cu.get_cv(X, y)
@@ -74,6 +81,9 @@ def run():
 
     # read test data.
     T = cu.get_test_data(encode_non_object=False)
+    T['yearbuilt'] = 2016 - T['yearbuilt']
+    T['yearbuilt'] = replace_with_iqr_boundary(T['yearbuilt'], yearbuilt_q1, yearbuilt_q3)
+    T['taxamount'] = replace_with_iqr_boundary(T['taxamount'], taxamount_q1, taxamount_q3)
 
     # predict result.
     print('Predicting.')
