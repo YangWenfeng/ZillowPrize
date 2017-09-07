@@ -1,23 +1,34 @@
-# Ensemble generation by stacking. Three models (Linear Regression, XGBoost
-# and LightGBM) are built to be stacked by XGBoost in the end.
+# Ensemble generation to be stacked by LinearRegression in the end.
+# There are two types of models:
+# 1. Tree model, such as XGBoost and LightGBM.
+# 2. Linear model, such as Linear Regression and Bayesian Ridge.
 #
 # Attention: KFold is fixed now for developing. It will be changed to random
 # mode before the final submission.
 #
-# Linear Regression: 0.0648547
 # XGBoost          : 0.0646224
 # LightGBM         : 0.0648655
-# Final            : 0.0648049
-from linear_regression_baseline import LinearRegressionModel
+# Linear Regression: 0.0648547
+# Ridge            : 0.0648670
+# Lasso            : 0.0649758
+# Elastic Net      : 0.0649684
+# Lasso LARS       : 0.0652184
+# Bayesian Ridge   : 0.0648601
+# Final            : 0.0648263
 from xgboost_baseline import XGBoostModel
 from lightgbm_baseline import LightGBMModel
+from linear_regression_baseline import LinearRegressionModel
+from ridge_baseline import RidgeModel
+from lasso_baseline import LassoModel
+from elastic_net_baseline import ElasticNetModel
+from lasso_lars_baseline import LassoLarsModel
+from bayesian_ridge_baseline import BayesianRidgeModel
 import common_utils as cu
 import numpy as np
 
 
 class Ensemble(object):
-    def __init__(self, n_folds, stacker, base_models):
-        self.n_folds = n_folds
+    def __init__(self, stacker, base_models):
         self.stacker = stacker
         self.base_models = base_models
 
@@ -62,14 +73,18 @@ def run():
 
     # create base models.
     base_models = [
-        LinearRegressionModel(),
         XGBoostModel(),
-        LightGBMModel()
+        LightGBMModel(),
+        LinearRegressionModel(),
+        RidgeModel(),
+        LassoModel(),
+        ElasticNetModel(),
+        LassoLarsModel(),
+        BayesianRidgeModel(),
     ]
 
     # setup ensemble parameters.
     ensemble = Ensemble(
-        n_folds=10,
         stacker=LinearRegressionModel(),
         base_models=base_models
     )
