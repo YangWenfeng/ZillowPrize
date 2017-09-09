@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
 from xgboost_baseline import XGBoostModel
 import common_utils as cu
 
@@ -58,6 +60,23 @@ def get_category_features():
                          'regionidzip', 'rawcensustractandblock', 'censustractandblock']
 
     return category_features
+
+def encode_category_features(df):
+    new_df = df.copy()
+    category_features = get_category_features()
+
+    print 'Encode category features: %s' % ','.join(category_features)
+    for column in new_df.columns:
+        if column in category_features:
+            missing = new_df[column].isnull()
+            new_df[column].fillna(-1, inplace=True)
+            label_encoder = LabelEncoder()
+            list_value = list(new_df[column].values)
+            label_encoder.fit(list_value)
+            new_df[column] = label_encoder.transform(list_value)
+            new_df[column][missing] = np.nan
+
+    return new_df
 
 def get_bool_features():
     # 'fireplaceflag' is already dropped in common_utils
