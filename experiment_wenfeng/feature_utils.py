@@ -61,28 +61,30 @@ def get_category_features():
 
     return category_features
 
-def encode_category_features(df):
+def get_bool_features():
+    bool_features = ['hashottuborspa', 'taxdelinquencyflag', 'fireplaceflag']
+
+    return bool_features
+
+def encode_category_bool_features(df, encode_non_object):
     new_df = df.copy()
     category_features = get_category_features()
+    bool_features = get_bool_features()
 
-    print 'Encode category features: %s' % ','.join(category_features)
+    print 'Encode category & bool features: [%s], [%s]' % (','.join(category_features),
+                                                           ','.join(bool_features))
     for column in new_df.columns:
-        if column in category_features:
+        if column in category_features or column in bool_features:
             missing = new_df[column].isnull()
             new_df[column].fillna(-1, inplace=True)
             label_encoder = LabelEncoder()
             list_value = list(new_df[column].values)
             label_encoder.fit(list_value)
             new_df[column] = label_encoder.transform(list_value)
-            new_df[column][missing] = np.nan
+            if not encode_non_object:
+                new_df[column][missing] = np.nan
 
     return new_df
-
-def get_bool_features():
-    # 'fireplaceflag' is already dropped in common_utils
-    bool_features = ['hashottuborspa', 'taxdelinquencyflag']
-
-    return bool_features
 
 def get_features_by_missing_rate(missing_df, missing_rate):
     drop_columns = missing_df[missing_df['missing_rate'] >= missing_rate]['column_name'].values
@@ -114,6 +116,7 @@ if __name__ == '__main__':
 
     # missing rate
     missing_df = get_feature_missing_df(X)
+    print missing_df
     print get_features_by_missing_rate(missing_df, 0.90)
 
     # Removing features with low variance

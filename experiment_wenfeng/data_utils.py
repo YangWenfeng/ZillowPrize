@@ -1,6 +1,6 @@
 # Generate completed training and test data, which is time-consuming to
 # generate every time.
-import common_utils as cu
+import feature_utils as fu
 import pandas as pd
 
 TRAIN_DATA_FILE = "../../data/train_2016_v2.csv"
@@ -37,7 +37,7 @@ def generate_train_data(encode_non_object):
     print('Generating train data.')
     train_df = pd.read_csv(TRAIN_DATA_FILE)
     properties_df = \
-        cu.encode_data(pd.read_csv(PROPERTIES_FILE), encode_non_object)
+        fu.encode_category_bool_features(pd.read_csv(PROPERTIES_FILE), encode_non_object)
     train_properties_df = \
         train_df.merge(properties_df, how='left', on='parcelid')
     if encode_non_object:
@@ -52,7 +52,7 @@ def generate_test_data(encode_non_object):
     test_df = pd.read_csv(TEST_DATA_FILE)
     test_df['parcelid'] = test_df['ParcelId']
     properties_df =\
-        cu.encode_data(pd.read_csv(PROPERTIES_FILE), encode_non_object)
+        fu.encode_category_bool_features(pd.read_csv(PROPERTIES_FILE), encode_non_object)
     test_properties_df = test_df.merge(properties_df, how='left', on='parcelid')
     test_properties_df = test_properties_df.drop(
         ['ParcelId', '201610', '201611', '201612', '201710', '201711',
