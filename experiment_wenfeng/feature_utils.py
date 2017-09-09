@@ -57,7 +57,8 @@ def get_category_features():
                          'heatingorsystemtypeid', 'propertycountylandusecode',
                          'propertylandusetypeid', 'storytypeid', 'typeconstructiontypeid',
                          'regionidcity', 'regionidcounty', 'regionidneighborhood',
-                         'regionidzip', 'rawcensustractandblock', 'censustractandblock']
+                         'regionidzip', 'rawcensustractandblock', 'censustractandblock',
+                         'propertyzoningdesc']
 
     return category_features
 
