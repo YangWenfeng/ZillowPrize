@@ -12,20 +12,29 @@ COMPLETED_TRAIN2_DATA_FILE = "../../data/completed_train2.csv"
 COMPLETED_TEST_DATA_FILE = "../../data/completed_test.csv"
 COMPLETED_TEST2_DATA_FILE = "../../data/completed_test2.csv"
 
+STANDARD_SCALER_TRAIN_DATA_FILE = "../../data/standard_scaler_train.csv"
+STANDARD_SCALER_TEST_DATA_FILE = "../../data/standard_scaler_test.csv"
 
-def get_completed_train_data(encode_non_object):
+
+def get_completed_train_data(encode_non_object, standard_scaler_flag=False):
     if encode_non_object:
         file_name = COMPLETED_TRAIN2_DATA_FILE
     else:
-        file_name = COMPLETED_TRAIN_DATA_FILE
+        if standard_scaler_flag:
+            file_name = STANDARD_SCALER_TRAIN_DATA_FILE
+        else:
+            file_name = COMPLETED_TRAIN_DATA_FILE
     return pd.read_csv(file_name)
 
 
-def get_completed_test_data(encode_non_object):
+def get_completed_test_data(encode_non_object, standard_scaler_flag=False):
     if encode_non_object:
         file_name = COMPLETED_TEST2_DATA_FILE
     else:
-        file_name = COMPLETED_TEST_DATA_FILE
+        if standard_scaler_flag:
+            file_name = STANDARD_SCALER_TEST_DATA_FILE
+        else:
+            file_name = COMPLETED_TEST_DATA_FILE
     return pd.read_csv(file_name)
 
 
@@ -33,11 +42,11 @@ def get_test_data():
     return pd.read_csv(TEST_DATA_FILE)
 
 
-def generate_train_data(encode_non_object):
+def generate_train_data(encode_non_object, standard_scaler_flag=False):
     print('Generating train data.')
     train_df = pd.read_csv(TRAIN_DATA_FILE)
     properties_df = \
-        fu.data_preprocessing(pd.read_csv(PROPERTIES_FILE), encode_non_object)
+        fu.data_preprocessing(pd.read_csv(PROPERTIES_FILE), encode_non_object, standard_scaler_flag)
     train_properties_df = \
         train_df.merge(properties_df, how='left', on='parcelid')
     if encode_non_object:
@@ -47,12 +56,12 @@ def generate_train_data(encode_non_object):
     train_properties_df.to_csv(file_name, index=False, float_format='%f')
 
 
-def generate_test_data(encode_non_object):
+def generate_test_data(encode_non_object, standard_scaler_flag=False):
     print('Generating test data.')
     test_df = pd.read_csv(TEST_DATA_FILE)
     test_df['parcelid'] = test_df['ParcelId']
     properties_df =\
-        fu.data_preprocessing(pd.read_csv(PROPERTIES_FILE), encode_non_object)
+        fu.data_preprocessing(pd.read_csv(PROPERTIES_FILE), encode_non_object, standard_scaler_flag)
     test_properties_df = test_df.merge(properties_df, how='left', on='parcelid')
     test_properties_df = test_properties_df.drop(
         ['ParcelId', '201610', '201611', '201612', '201710', '201711',
@@ -66,6 +75,8 @@ def generate_test_data(encode_non_object):
 
 if __name__ == '__main__':
     generate_train_data(False)
-    generate_train_data(True)
     generate_test_data(False)
+    generate_train_data(True)
     generate_test_data(True)
+    generate_train_data(True, standard_scaler_flag=True)
+    generate_test_data(True, standard_scaler_flag=True)
