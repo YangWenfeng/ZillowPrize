@@ -59,7 +59,7 @@ def get_category_features():
                          'propertylandusetypeid', 'storytypeid', 'typeconstructiontypeid',
                          'regionidcity', 'regionidcounty', 'regionidneighborhood',
                          'regionidzip', 'rawcensustractandblock', 'censustractandblock',
-                         'propertyzoningdesc']
+                         'propertyzoningdesc', 'fips']
 
     return category_features
 
