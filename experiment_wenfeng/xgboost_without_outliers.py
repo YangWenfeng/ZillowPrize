@@ -1,5 +1,6 @@
 # Version 1: XGBoost without outlier.
-
+# Training result: [220] train-mae:0.0509354 test-mae:0.0526506
+# Public score: 0.0645843
 import numpy as np
 import pandas as pd
 import xgboost as xgb
