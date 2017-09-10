@@ -69,14 +69,15 @@ def encode_category_bool_features(df, encode_non_object):
     for column in new_df.columns:
         if column in category_features or column in bool_features:
             missing = new_df[column].isnull()
-            new_df[column].fillna(-1, inplace=True)
+            new_df[column].fillna(0, inplace=True)
             label_encoder = LabelEncoder()
             list_value = list(new_df[column].values)
             label_encoder.fit(list_value)
             new_df[column] = label_encoder.transform(list_value)
             if not encode_non_object:
                 new_df[column][missing] = np.nan
-
+        elif encode_non_object:
+            new_df[column].fillna(0, inplace=True)
     return new_df
 
 def fillna_zero(df):
