@@ -59,14 +59,9 @@ def generate_train_data(encode_non_object, standard_scaler_flag=False):
 
 def generate_test_data(encode_non_object, standard_scaler_flag=False):
     print('Generating test data.')
-    test_df = _test_df.copy()
-    test_df['parcelid'] = test_df['ParcelId']
-    properties_df =\
+    # Cause the first column of properties_2016.csv and sample_submission.csv are the same
+    test_properties_df =\
         fu.data_preprocessing(_properties_df.copy(), encode_non_object, standard_scaler_flag)
-    test_properties_df = test_df.merge(properties_df, how='left', on='parcelid')
-    test_properties_df = test_properties_df.drop(
-        ['ParcelId', '201610', '201611', '201612', '201710', '201711',
-         '201712'], axis=1)
     if encode_non_object:
         file_name = COMPLETED_TEST2_DATA_FILE
     else:
