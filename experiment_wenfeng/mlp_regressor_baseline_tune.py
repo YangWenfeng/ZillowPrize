@@ -26,10 +26,7 @@ class MLPRegressorModel(object):
     def predict(self, predict_df):
         return self.base_model.predict(predict_df)
 
-def run_grid():
-    # read train data.
-    X, y = cu.get_train_data(encode_non_object=True)
-
+def drop_columns(X):
     # feature utils
     from feature_utils import get_category_features, get_bool_features
     category_bool_columns = []
@@ -38,14 +35,13 @@ def run_grid():
     print 'Drop category & bool columns: %s' % ','.join(category_bool_columns)
     X = X.drop(category_bool_columns, axis=1)
 
-    # from sklearn.preprocessing import StandardScaler
-    print 'Standard Scaler.'
-    for col in X.columns:
-        if col in category_bool_columns:
-            continue
-        col_mean, col_std = X[col].mean(), X[col].std()
-        X[col] = (X[col] - col_mean) / col_std
+    return X
 
+def run_grid():
+    # read train data.
+    X, y = cu.get_train_data(encode_non_object=True)
+
+    X = drop_columns(X)
     feature_cnt = X.columns.shape[0]
 
     print 'Grid Search.'
@@ -66,6 +62,7 @@ def run_grid():
 def run():
     # read train data.
     X, y = cu.get_train_data(encode_non_object=True)
+    X = drop_columns(X)
 
     # train model.
     lrm = MLPRegressorModel()
@@ -83,5 +80,5 @@ def run():
 
 
 if __name__ == "__main__":
-    # run()
-    run_grid()
+    run()
+    # run_grid()
