@@ -88,6 +88,16 @@ def encode_category_bool_features(df, encode_non_object):
 
     return new_df
 
+def fullna_zero(df):
+    new_df = df.copy()
+
+    columns = ['hashottuborspa', 'airconditioningtypeid', 'poolcnt', 'fireplacecnt',
+               'decktypeid', 'regionidcity']
+    for col in columns:
+        new_df[col].fillna(0, inplace=True)
+
+    return new_df
+
 def get_features_by_missing_rate(missing_df, missing_rate):
     drop_columns = missing_df[missing_df['missing_rate'] >= missing_rate]['column_name'].values
 
@@ -107,21 +117,16 @@ def gen_zero_variance_features():
     return zero_variance_columns
 
 
-def get_zero_variance_features():
-    zero_variance_columns = ['buildingclasstypeid', 'decktypeid', 'hashottuborspa',
-                             'poolcnt', 'pooltypeid10', 'pooltypeid2', 'pooltypeid7',
-                             'storytypeid', 'fireplaceflag', 'taxdelinquencyflag']
-
-    return zero_variance_columns
-
 if __name__ == '__main__':
 
     X, y = cu.get_train_data(encode_non_object=False)
+
+    X = fullna_zero(X)
     print X.shape
 
     # feature importance
     print 'Generate feature importance.'
-    # gen_feature_importance()
+    gen_feature_importance()
     print get_feature_importance_df()
 
     # missing rate
