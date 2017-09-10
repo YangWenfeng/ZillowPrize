@@ -14,7 +14,7 @@ def get_train_data(encode_non_object):
     train = du.get_completed_train_data(encode_non_object)
     train = train[train.logerror > OUTLIER_LOWER_BOUND]
     train = train[train.logerror < OUTLIER_UPPER_BOUND]
-    X = train.drop(['parcelid', 'logerror', 'transactiondate'], axis=1)
+    X = train.drop(['parcelid', 'logerror', 'transactiondate', 'assessmentyear'], axis=1)
                     # 'propertyzoningdesc', 'propertycountylandusecode',
                     # 'fireplacecnt', 'fireplaceflag'], axis=1)
     y = train['logerror'].values

@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
-from xgboost_baseline import XGBoostModel
 import common_utils as cu
 
 FEATURE_IMPORTANCE_FILE = '../../data/feature_importance.csv'
 
 def gen_feature_importance(importance_type='gain'):
+    from xgboost_baseline import XGBoostModel
+
     # read train data.
     X, y = cu.get_train_data(encode_non_object=False)
 
@@ -110,14 +111,19 @@ def get_zero_variance_features():
 if __name__ == '__main__':
 
     X, y = cu.get_train_data(encode_non_object=False)
+    print X.shape
 
     # feature importance
-    # gen_feature_importance()
-    # print get_feature_importance_df()
+    print 'Generate feature importance.'
+    gen_feature_importance()
+    print get_feature_importance_df()
 
     # missing rate
+    print 'Missing rate.'
     missing_df = get_feature_missing_df(X)
     print missing_df
+
+    print 'Missing rate >= 0.90'
     print get_features_by_missing_rate(missing_df, 0.90)
 
     # Removing features with low variance
