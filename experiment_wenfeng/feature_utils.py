@@ -50,7 +50,8 @@ def get_category_features():
                          'propertylandusetypeid', 'storytypeid', 'typeconstructiontypeid',
                          'regionidcity', 'regionidcounty', 'regionidneighborhood',
                          'regionidzip', 'rawcensustractandblock', 'censustractandblock',
-                         'propertyzoningdesc', 'fips']
+                         'propertyzoningdesc', 'fips', 'pooltypeid2', 'pooltypeid7',
+                         'pooltypeid10']
 
     return category_features
 
@@ -59,14 +60,56 @@ def get_bool_features():
 
     return bool_features
 
-def data_preprocessing(df, encode_non_object):
+def get_year_features():
+    return ['yearbuilt', 'assessmentyear', 'taxdelinquencyyear']
+
+def get_latitude_longitude_features():
+    return ['latitude', 'longitude']
+
+def get_all_properties_features():
+    s = 'airconditioningtypeid,architecturalstyletypeid,basementsqft,bathroomcnt,' \
+        'bedroomcnt,buildingqualitytypeid,buildingclasstypeid,calculatedbathnbr,' \
+        'decktypeid,threequarterbathnbr,finishedfloor1squarefeet,calculatedfinishedsquarefeet,' \
+        'finishedsquarefeet6,finishedsquarefeet12,finishedsquarefeet13,finishedsquarefeet15,' \
+        'finishedsquarefeet50,fips,fireplacecnt,fireplaceflag,fullbathcnt,garagecarcnt,' \
+        'garagetotalsqft,hashottuborspa,heatingorsystemtypeid,latitude,longitude,' \
+        'lotsizesquarefeet,numberofstories,parcelid,poolcnt,poolsizesum,pooltypeid10,' \
+        'pooltypeid2,pooltypeid7,propertycountylandusecode,propertylandusetypeid,' \
+        'propertyzoningdesc,rawcensustractandblock,censustractandblock,regionidcounty,' \
+        'regionidcity,regionidzip,regionidneighborhood,roomcnt,storytypeid,typeconstructiontypeid,' \
+        'unitcnt,yardbuildingsqft17,yardbuildingsqft26,yearbuilt,taxvaluedollarcnt,' \
+        'structuretaxvaluedollarcnt,landtaxvaluedollarcnt,taxamount,assessmentyear,' \
+        'taxdelinquencyflag,taxdelinquencyyear'
+    return s.split(',')
+
+def get_scale_features():
+    return list(set(get_all_properties_features())
+                - set(get_category_features())
+                - set(get_bool_features())
+                - set(['parcelid'])
+                )
+
+def data_preprocessing(df, encode_non_object, standard_scaler_flag=False):
+    print 'Data preprocessing.'
     new_df = df.copy()
+
+    print 'Data preprocessing with year features'
+    year_features = get_year_features()
+    for col in year_features:
+        new_df[col] = 2016 - new_df[col]
+
     category_features = get_category_features()
     bool_features = get_bool_features()
 
     print 'Encode category & bool features: [%s], [%s]' % (','.join(category_features),
                                                            ','.join(bool_features))
+
+    latitude_longitude_features = get_latitude_longitude_features()
     for column in new_df.columns:
+        if column in ['parcelid']:
+            print 'Data preprocessing skip parcelid.'
+            continue
+
         if column in category_features or column in bool_features:
             missing = new_df[column].isnull()
             new_df[column].fillna(0, inplace=True)
@@ -77,9 +120,14 @@ def data_preprocessing(df, encode_non_object):
             if not encode_non_object:
                 new_df[column][missing] = np.nan
         elif encode_non_object:
-            v_mean, v_std = new_df[column].mean(), new_df[column].std()
-            new_df[column] = (new_df[column] - v_mean) / v_std
-            new_df[column].fillna(0, inplace=True)
+            if standard_scaler_flag:
+                v_mean, v_std = new_df[column].mean(), new_df[column].std()
+                new_df[column] = (new_df[column] - v_mean) / v_std
+
+            if column in latitude_longitude_features():
+                new_df[column].fillna(new_df[column].median(), inplace=True)
+            else:
+                new_df[column].fillna(0, inplace=True)
 
     return new_df
 
@@ -87,7 +135,7 @@ def fillna_zero(df):
     new_df = df.copy()
 
     columns = ['hashottuborspa', 'airconditioningtypeid', 'poolcnt', 'fireplacecnt',
-               'decktypeid', 'regionidcity']
+               'decktypeid', 'regionidcity', 'pooltypeid2', 'pooltypeid7', 'pooltypeid10']
     for col in columns:
         new_df[col].fillna(0, inplace=True)
 
