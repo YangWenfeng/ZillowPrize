@@ -132,30 +132,32 @@ def run_feature_selection():
     # read train data.
     X, y = cu.get_train_data(encode_non_object=False)
 
-    # # get CV from train data.
-    # X_train, y_train, X_holdout, y_holdout = cu.get_cv(X, y)
-    #
-    # xgbm = XGBoostModel()
-    # xgbm.train(X_train, y_train, X_holdout, y_holdout)
-
-    importance_df = fu.get_feature_importance_df()
-    columns = importance_df['column_name']
-    print 'Features sorted by importance asc: %s, count is %d' % (','.join(columns),
-                                                                  columns.shape[0])
+    drop_columns = []
+    columns = X.columns.values
     result = []
-    for i in xrange(len(columns)-1):
-        drop_columns = columns[0:i+1]
-        newX = X.drop(drop_columns, axis=1)
-        print 'Drop columns: %s, remain %d features' % (','.join(drop_columns),
-                                                        newX.columns.shape[0])
+    while len(drop_columns) < len(columns) - 1:
+        candidates = list(set(columns) - set(drop_columns))
 
-        X_train, y_train, X_holdout, y_holdout = cu.get_cv(newX, y)
+        best_score, best_candidate = 1e10, None
+        for candidate in candidates:
+            print 'Candidate is %s' % candidate
+            newX = X.drop(drop_columns, axis=1)
+            newX = newX.drop([candidate], axis=1)
 
-        # train model.
-        xgbm = XGBoostModel()
-        xgbm.train(X_train, y_train, X_holdout, y_holdout)
+            X_train, y_train, X_holdout, y_holdout = cu.get_cv(newX, y)
 
-        result.append([i, columns[i], xgbm.base_model.best_score])
+            # train model.
+            xgbm = XGBoostModel()
+            xgbm.train(X_train, y_train, X_holdout, y_holdout)
+
+            if xgbm.base_model.best_score < best_score:
+                best_score = xgbm.base_model.best_score
+                best_candidate = candidate
+        print 'best_score = %.6f, best_candidate = %s, drop columns = %s' % (
+            best_score, best_candidate, ','.join(drop_columns))
+        result.append([best_score, best_candidate, ','.join(drop_columns)])
+
+        drop_columns.append(best_candidate)
 
     print '\n'.join(','.join(str(o) for o in one) for one in result)
 
