@@ -9,9 +9,9 @@ OUTLIER_LOWER_BOUND = -0.4
 
 RESULT_FILE = "../../data/result.csv"
 
-def get_train_data(encode_non_object):
+def get_train_data(encode_non_object, standard_scaler_flag=False):
     print('Getting train data.')
-    train = du.get_completed_train_data(encode_non_object)
+    train = du.get_completed_train_data(encode_non_object, standard_scaler_flag)
     train = train[train.logerror > OUTLIER_LOWER_BOUND]
     train = train[train.logerror < OUTLIER_UPPER_BOUND]
     X = train.drop(['parcelid', 'logerror', 'transactiondate', 'assessmentyear'], axis=1)
@@ -21,9 +21,9 @@ def get_train_data(encode_non_object):
     return X, y
 
 
-def get_test_data(encode_non_object):
+def get_test_data(encode_non_object, standard_scaler_flag=False):
     print('Getting test data.')
-    return du.get_completed_test_data(encode_non_object)
+    return du.get_completed_test_data(encode_non_object, standard_scaler_flag)
 
 
 def get_one_kfold(length, split_index):
