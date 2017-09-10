@@ -39,7 +39,7 @@ def drop_columns(X):
 
 def run_grid():
     # read train data.
-    X, y = cu.get_train_data(encode_non_object=True)
+    X, y = cu.get_train_data(encode_non_object=True, standard_scaler_flag=True)
 
     X = drop_columns(X)
     feature_cnt = X.columns.shape[0]
@@ -61,7 +61,7 @@ def run_grid():
 
 def run():
     # read train data.
-    X, y = cu.get_train_data(encode_non_object=True)
+    X, y = cu.get_train_data(encode_non_object=True, standard_scaler_flag=True)
     X = drop_columns(X)
 
     # train model.
@@ -69,7 +69,7 @@ def run():
     lrm.train(X, y)
 
     # read test data.
-    T = cu.get_test_data(encode_non_object=True)
+    T = cu.get_test_data(encode_non_object=True, standard_scaler_flag=True)
 
     # predict result.
     print('Predicting.')
