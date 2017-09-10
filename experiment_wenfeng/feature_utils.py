@@ -93,18 +93,24 @@ def get_features_by_missing_rate(missing_df, missing_rate):
 
     return list(drop_columns)
 
-def get_zero_variance_features():
-    # X, _ = cu.get_train_data(encode_non_object=False)
-    # X.fillna(X.median(), inplace=True)  # IMPORTANT
-    #
-    # from sklearn.feature_selection import VarianceThreshold
-    # selector = VarianceThreshold()
-    #
-    # selector.fit(X)
-    # zero_variance_columns = [col for i, col in enumerate(X.columns) if selector.variances_[i] == 0]
+def gen_zero_variance_features():
+    X, _ = cu.get_train_data(encode_non_object=False)
 
-    zero_variance_columns = ['buildingclasstypeid', 'decktypeid', 'poolcnt', 'pooltypeid10',
-                             'pooltypeid2', 'pooltypeid7', 'storytypeid', 'assessmentyear']
+    X.fillna(X.median(), inplace=True)  # IMPORTANT
+
+    from sklearn.feature_selection import VarianceThreshold
+    selector = VarianceThreshold()
+
+    selector.fit(X)
+    zero_variance_columns = [col for i, col in enumerate(X.columns) if selector.variances_[i] == 0]
+
+    return zero_variance_columns
+
+
+def get_zero_variance_features():
+    zero_variance_columns = ['buildingclasstypeid', 'decktypeid', 'hashottuborspa',
+                             'poolcnt', 'pooltypeid10', 'pooltypeid2', 'pooltypeid7',
+                             'storytypeid', 'fireplaceflag', 'taxdelinquencyflag']
 
     return zero_variance_columns
 
@@ -115,7 +121,7 @@ if __name__ == '__main__':
 
     # feature importance
     print 'Generate feature importance.'
-    gen_feature_importance()
+    # gen_feature_importance()
     print get_feature_importance_df()
 
     # missing rate
@@ -130,3 +136,6 @@ if __name__ == '__main__':
     # Remove feature assessmentyear, cause it's variance equal 0
     # print X['assessmentyear'].value_counts(dropna=False)
     # print get_zero_variance_features()
+
+    #
+    print gen_zero_variance_features()
