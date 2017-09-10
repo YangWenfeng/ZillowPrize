@@ -15,6 +15,7 @@ COMPLETED_TEST2_DATA_FILE = "../../data/completed_test2.csv"
 STANDARD_SCALER_TRAIN_DATA_FILE = "../../data/standard_scaler_train.csv"
 STANDARD_SCALER_TEST_DATA_FILE = "../../data/standard_scaler_test.csv"
 
+_train_df, _test_df, _properties_df = None, None, None
 
 def get_completed_train_data(encode_non_object, standard_scaler_flag=False):
     if encode_non_object:
@@ -44,9 +45,9 @@ def get_test_data():
 
 def generate_train_data(encode_non_object, standard_scaler_flag=False):
     print('Generating train data.')
-    train_df = pd.read_csv(TRAIN_DATA_FILE)
+    train_df = _train_df.copy()
     properties_df = \
-        fu.data_preprocessing(pd.read_csv(PROPERTIES_FILE), encode_non_object, standard_scaler_flag)
+        fu.data_preprocessing(_properties_df.copy(), encode_non_object, standard_scaler_flag)
     train_properties_df = \
         train_df.merge(properties_df, how='left', on='parcelid')
     if encode_non_object:
@@ -58,10 +59,10 @@ def generate_train_data(encode_non_object, standard_scaler_flag=False):
 
 def generate_test_data(encode_non_object, standard_scaler_flag=False):
     print('Generating test data.')
-    test_df = pd.read_csv(TEST_DATA_FILE)
+    test_df = _test_df.copy()
     test_df['parcelid'] = test_df['ParcelId']
     properties_df =\
-        fu.data_preprocessing(pd.read_csv(PROPERTIES_FILE), encode_non_object, standard_scaler_flag)
+        fu.data_preprocessing(_properties_df.copy(), encode_non_object, standard_scaler_flag)
     test_properties_df = test_df.merge(properties_df, how='left', on='parcelid')
     test_properties_df = test_properties_df.drop(
         ['ParcelId', '201610', '201611', '201612', '201710', '201711',
@@ -74,6 +75,15 @@ def generate_test_data(encode_non_object, standard_scaler_flag=False):
 
 
 if __name__ == '__main__':
+    print 'Read origin train data.'
+    _train_df = pd.read_csv(TRAIN_DATA_FILE)
+
+    print 'Read origin test data.'
+    _test_df = pd.read_csv(TEST_DATA_FILE)
+
+    print 'Read origin properties data.'
+    _properties_df = pd.read_csv(PROPERTIES_FILE)
+
     generate_train_data(False)
     generate_test_data(False)
     generate_train_data(True)

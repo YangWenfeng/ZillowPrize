@@ -124,7 +124,7 @@ def data_preprocessing(df, encode_non_object, standard_scaler_flag=False):
                 v_mean, v_std = new_df[column].mean(), new_df[column].std()
                 new_df[column] = (new_df[column] - v_mean) / v_std
 
-            if column in latitude_longitude_features():
+            if column in latitude_longitude_features:
                 new_df[column].fillna(new_df[column].median(), inplace=True)
             else:
                 new_df[column].fillna(0, inplace=True)
