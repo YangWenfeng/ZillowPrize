@@ -3,9 +3,7 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import common_utils as cu
 
-FEATURE_IMPORTANCE_FILE = '../../data/feature_importance.csv'
-
-def gen_feature_importance(importance_type='gain'):
+def get_feature_importance_df(importance_type='gain'):
     from xgboost_baseline import XGBoostModel
 
     # read train data.
@@ -29,13 +27,6 @@ def gen_feature_importance(importance_type='gain'):
     importance_df = importance_df.sort_values(by='importance', ascending=True)
 
     importance_df = importance_df.reset_index(drop=True)
-
-    importance_df.to_csv(FEATURE_IMPORTANCE_FILE, index=False)
-
-    print 'Generate feature importance success.'
-
-def get_feature_importance_df():
-    importance_df = pd.read_csv(FEATURE_IMPORTANCE_FILE)
 
     return importance_df
 
@@ -126,7 +117,6 @@ if __name__ == '__main__':
 
     # feature importance
     print 'Generate feature importance.'
-    gen_feature_importance()
     print get_feature_importance_df()
 
     # missing rate

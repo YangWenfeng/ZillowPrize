@@ -155,8 +155,7 @@ def run_feature_selection():
         xgbm = XGBoostModel()
         xgbm.train(X_train, y_train, X_holdout, y_holdout)
 
-        result.append(['Drop Columns: %s' % ','.join(drop_columns),
-                       xgbm.base_model.best_score])
+        result.append([i, columns[i], xgbm.base_model.best_score])
 
     print '\n'.join(','.join(str(o) for o in one) for one in result)
 
