@@ -21,8 +21,9 @@
 # pooltypeid2,pooltypeid7,storytypeid,assessmentyear]
 # Training result: [178] train-mae:0.051562 holdout-mae:0.052138
 # Public score: 0.0647126
-
+from sklearn.feature_selection import SelectFromModel
 import common_utils as cu
+import feature_utils as fu
 import xgboost as xgb
 
 
@@ -55,14 +56,13 @@ def run_missing_rate():
     X, y = cu.get_train_data(encode_non_object=False)
 
     # feature utils
-    from feature_utils import get_feature_missing_df, get_features_by_missing_rate
-    missing_df = get_feature_missing_df(X)
+    missing_df = fu.get_feature_missing_df(X)
 
     result = []
     for missing_rate in [0.95, 0.995]:
         print 'Missing Rate is %.4f' % missing_rate
 
-        columns = get_features_by_missing_rate(missing_df, missing_rate)
+        columns = fu.get_features_by_missing_rate(missing_df, missing_rate)
 
         newX = X.drop(columns, axis=1)
 
@@ -82,8 +82,7 @@ def run_zero_variance():
     X, y = cu.get_train_data(encode_non_object=False)
 
     # feature utils
-    from feature_utils import get_zero_variance_features
-    columns = get_zero_variance_features()
+    columns = fu.gen_zero_variance_features()
 
     print 'Drop zero variance features [%s]' % ','.join(columns)
     X = X.drop(columns, axis=1)
@@ -105,15 +104,71 @@ def run_zero_variance():
     # write result.
     cu.write_result(y_pred)
 
+def run_fillna_zero():
+    # read train data.
+    X, y = cu.get_train_data(encode_non_object=False)
+
+    # feature utils
+    X = fu.fillna_zero(X)
+
+    # get CV from train data.
+    X_train, y_train, X_holdout, y_holdout = cu.get_cv(X, y)
+
+    # train model.
+    xgbm = XGBoostModel()
+    xgbm.train(X_train, y_train, X_holdout, y_holdout)
+
+    # read test data.
+    T = cu.get_test_data(encode_non_object=False)
+
+    # predict result.
+    print('Predicting.')
+    y_pred = xgbm.predict(T[X_train.columns])
+
+    # write result.
+    cu.write_result(y_pred)
+
+def run_feature_selection():
+    # read train data.
+    X, y = cu.get_train_data(encode_non_object=False)
+
+    # # get CV from train data.
+    # X_train, y_train, X_holdout, y_holdout = cu.get_cv(X, y)
+    #
+    # xgbm = XGBoostModel()
+    # xgbm.train(X_train, y_train, X_holdout, y_holdout)
+
+    importance_df = fu.get_feature_importance_df()
+    columns = importance_df['column_name']
+    print 'Features sorted by importance asc: %s, count is %d' % (','.join(columns),
+                                                                  columns.shape[0])
+    result = []
+    for i in xrange(len(columns)-1):
+        drop_columns = columns[0:i+1]
+        newX = X.drop(drop_columns, axis=1)
+        print 'Drop columns: %s, remain %d features' % (','.join(drop_columns),
+                                                        newX.columns.shape[0])
+
+        X_train, y_train, X_holdout, y_holdout = cu.get_cv(newX, y)
+
+        # train model.
+        xgbm = XGBoostModel()
+        xgbm.train(X_train, y_train, X_holdout, y_holdout)
+
+        result.append(['Drop Columns: %s' % ','.join(drop_columns),
+                       xgbm.base_model.best_score])
+
+    print '\n'.join(','.join(str(o) for o in one) for one in result)
+
+
 def run():
     # read train data.
     X, y = cu.get_train_data(encode_non_object=False)
 
     # feature utils
-    from feature_utils import get_feature_missing_df, get_features_by_missing_rate
-    missing_df = get_feature_missing_df(X)
+    missing_df = fu.get_feature_missing_df(X)
     missing_rate = 0.995
-    columns = get_features_by_missing_rate(missing_df, missing_rate)
+    columns = fu.get_features_by_missing_rate(missing_df, missing_rate)
     print "Drop missing rate >= %.4f features: [%s]" % (missing_rate, ','.join(columns))
     X = X.drop(columns, axis=1)
 
@@ -136,6 +191,8 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    # run()
     # run_missing_rate()
     # run_zero_variance()
+    # run_fillna_zero()
+    run_feature_selection()

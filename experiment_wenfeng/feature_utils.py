@@ -88,7 +88,7 @@ def encode_category_bool_features(df, encode_non_object):
 
     return new_df
 
-def fullna_zero(df):
+def fillna_zero(df):
     new_df = df.copy()
 
     columns = ['hashottuborspa', 'airconditioningtypeid', 'poolcnt', 'fireplacecnt',
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     X, y = cu.get_train_data(encode_non_object=False)
 
-    X = fullna_zero(X)
+    X = fillna_zero(X)
     print X.shape
 
     # feature importance
