@@ -1,6 +1,7 @@
 # MLPRegressor baseline for feature engineering.
 #
 # Public score: 57305.2981687 (MLP is sensitive to feature scaling)
+import numpy as np
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import GridSearchCV
@@ -13,10 +14,8 @@ class MLPRegressorModel(object):
 
     def train(self, X_train, y_train, X_holdout=None, y_holdout=None):
         print('Training model.')
-        params = {
-            'hidden_layer_sizes': (X_train.shape[1]+1,) * 4
-        }
-        self.base_model = MLPRegressor(params)
+        N = X_train.shape[1]+1
+        self.base_model = MLPRegressor(hidden_layer_sizes=(N, ) * 6)
         self.base_model.fit(X_train, y_train)
 
         y_pred = self.predict(X_train)
