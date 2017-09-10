@@ -59,7 +59,7 @@ def get_bool_features():
 
     return bool_features
 
-def encode_category_bool_features(df, encode_non_object):
+def data_preprocessing(df, encode_non_object):
     new_df = df.copy()
     category_features = get_category_features()
     bool_features = get_bool_features()
@@ -77,7 +77,10 @@ def encode_category_bool_features(df, encode_non_object):
             if not encode_non_object:
                 new_df[column][missing] = np.nan
         elif encode_non_object:
+            v_mean, v_std = new_df[column].mean(), new_df[column].std()
+            new_df[column] = (new_df[column] - v_mean) / v_std
             new_df[column].fillna(0, inplace=True)
+
     return new_df
 
 def fillna_zero(df):
