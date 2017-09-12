@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
-import cPickle
 import time
 
 OUTLIER_UPPER_BOUND = 0.419
@@ -13,12 +12,19 @@ OUTLIER_LOWER_BOUND = -0.4
 FOLDS = 5
 PICKLE_FILE = '../../data/xgboost_without_outliers_fe.p'
 
-def save_data():
+def run():
     start_time = time.time()
     print('Reading training data, properties and test data.')
     train = pd.read_csv("../../data/train_2016_v2.csv")
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
+
     properties = pd.read_csv('../../data/properties_2016.csv')
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
     test = pd.read_csv('../../data/sample_submission.csv')
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
     properties = properties.isnull()
 
     print('Encoding missing data.')
@@ -29,11 +35,15 @@ def save_data():
             list_value = list(properties[column].values)
             label_encoder.fit(list_value)
             properties[column] = label_encoder.transform(list_value)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
 
     print('Combining training data with properties.')
     train_with_properties = train.merge(properties, how='left', on='parcelid')
     print('Original training data with properties shape: {}'
           .format(train_with_properties.shape))
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
 
     print('Dropping out outliers.')
     train_with_properties = train_with_properties[
@@ -49,26 +59,14 @@ def save_data():
          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
     y_train = train_with_properties['logerror']
 
+    print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
     print('Building test set.')
     test['parcelid'] = test['ParcelId']
     df_test = test.merge(properties, how='left', on='parcelid')
 
-    cPickle.dump((x_train, y_train, df_test, ), open(PICKLE_FILE, 'wb'))
-
     print("--- %s seconds ---" % (time.time() - start_time))
 
-def load_data():
-    start_time = time.time()
-
-    with open(PICKLE_FILE, 'rb') as fp:
-      x_train, y_train, df_test = cPickle.load(fp)
-
-    print("--- %s seconds ---" % (time.time() - start_time))
-
-    return x_train, y_train, df_test
-
-def run():
-    x_train, y_train, df_test = load_data()
     y_train_mean = np.mean(y_train)
 
     print('Training the model with cross validation.')
@@ -111,5 +109,4 @@ def run():
 
 
 if __name__ == "__main__":
-    # save_data()
     run()
