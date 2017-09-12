@@ -1,4 +1,7 @@
 # Version 1: XGBoost without outlier.
+# Public score: 0.0645843
+# MeanEncoder 'regionidcity', 'regionidneighborhood', 'regionidzip'
+# Public score: 0.0645385
 
 import numpy as np
 import pandas as pd
@@ -25,6 +28,7 @@ for column in properties.columns:
         label_encoder.fit(list_value)
         properties[column] = label_encoder.transform(list_value)
 
+print ('Mean encode data.')
 mean_encoder = MeanEncoder(
     categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
     target_type='regression'
@@ -51,6 +55,7 @@ y_train = train_with_properties['logerror']
 y_train_mean = np.mean(y_train)
 
 x_train = mean_encoder.fit_transform(x_train, y_train)
+x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
 
 print('Training the model with cross validation.')
 d_train = xgb.DMatrix(x_train, y_train)
@@ -77,9 +82,9 @@ model = xgb.train(
 print('Building test set.')
 test['parcelid'] = test['ParcelId']
 df_test = test.merge(properties, how='left', on='parcelid')
+df_test = mean_encoder.transform(df_test)
 d_test = xgb.DMatrix(df_test[x_train.columns])
 
-d_test = mean_encoder.transform(d_test)
 
 print('Predicting on test data.')
 p_test = model.predict(d_test)
