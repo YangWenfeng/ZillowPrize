@@ -1,7 +1,23 @@
 # Version 1: XGBoost without outlier.
 # Public score: 0.0645843
-# MeanEncoder 'regionidcity', 'regionidneighborhood', 'regionidzip'
+# MeanEncoder regionidcity, regionidneighborhood, regionidzip
+# Training result: [220] train-mae:0.0508244 test-mae:0.0526386
 # Public score: 0.0645385
+# try1: Add to MeanEncoder rawcensustractandblock, censustractandblock
+# Training result: [200] train-mae:0.0508592 test-mae:0.0526378
+# Public score: 0.0646074
+# try2: Add to propertyzoningdesc
+# Training result: [210] train-mae:0.0508218 test-mae:0.0526126
+# Public score: 0.0645737
+# try3: Add to propertycountylandusecode
+# Training result: [210] train-mae:0.0508666 test-mae:0.0526252
+# Public score:0.0645598
+# try4: Add to propertyzoningdesc, propertycountylandusecode
+# Training result: [230] train-mae:0.0506804 test-mae:0.052604
+# Public score: 0.0645467
+# Drop rawcensustractandblock, censustractandblock
+# Training result: [230] train-mae:0.0507928 test-mae:0.0526542
+# Public score: 0.0645721
 
 import numpy as np
 import pandas as pd
