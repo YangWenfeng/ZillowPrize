@@ -12,7 +12,8 @@ OUTLIER_LOWER_BOUND = -0.4
 FOLDS = 5
 PICKLE_FILE = '../../data/xgboost_without_outliers_fe.p'
 
-store = pd.HDFStore('../../data/xgboost_without_outliers_fe.h5')
+store = pd.HDFStore('../../data/xgboost_without_outliers_fe.h5',
+                    'w', complib=str('zlib'), complevel=5)
 
 def save_data():
     start_time = time.time()
@@ -48,15 +49,15 @@ def save_data():
     x_train = train_with_properties.drop(
         ['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc',
          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
-    y_train = train_with_properties['logerror'].values
+    y_train = train_with_properties['logerror']
 
     print('Building test set.')
     test['parcelid'] = test['ParcelId']
     df_test = test.merge(properties, how='left', on='parcelid')
 
-    store.put('x_train', x_train)
-    store.put('y_train', y_train)
-    store.put('df_test', df_test)
+    store.put('x_train', x_train, data_columns=x_train.columns)
+    store.put('y_train', y_train, data_columns=y_train.columns)
+    store.put('df_test', df_test, data_columns=df_test.columns)
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
@@ -69,7 +70,7 @@ def load_data():
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    return x_train, y_train, df_test
+    return x_train, y_train.values, df_test
 
 def run():
     x_train, y_train, df_test = load_data()
