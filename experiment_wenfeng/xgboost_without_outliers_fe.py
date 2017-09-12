@@ -12,19 +12,14 @@ OUTLIER_LOWER_BOUND = -0.4
 FOLDS = 5
 PICKLE_FILE = '../../data/xgboost_without_outliers_fe.p'
 
-def run():
+store = pd.HDFStore('../../data/xgboost_without_outliers_fe.h5')
+
+def save_data():
     start_time = time.time()
     print('Reading training data, properties and test data.')
     train = pd.read_csv("../../data/train_2016_v2.csv")
-    print("--- %s seconds ---" % (time.time() - start_time))
-    start_time = time.time()
-
     properties = pd.read_csv('../../data/properties_2016.csv')
-    print("--- %s seconds ---" % (time.time() - start_time))
-    start_time = time.time()
     test = pd.read_csv('../../data/sample_submission.csv')
-    print("--- %s seconds ---" % (time.time() - start_time))
-    start_time = time.time()
     properties = properties.isnull()
 
     print('Encoding missing data.')
@@ -35,15 +30,11 @@ def run():
             list_value = list(properties[column].values)
             label_encoder.fit(list_value)
             properties[column] = label_encoder.transform(list_value)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    start_time = time.time()
 
     print('Combining training data with properties.')
     train_with_properties = train.merge(properties, how='left', on='parcelid')
     print('Original training data with properties shape: {}'
           .format(train_with_properties.shape))
-    print("--- %s seconds ---" % (time.time() - start_time))
-    start_time = time.time()
 
     print('Dropping out outliers.')
     train_with_properties = train_with_properties[
@@ -59,14 +50,29 @@ def run():
          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
     y_train = train_with_properties['logerror']
 
-    print("--- %s seconds ---" % (time.time() - start_time))
-    start_time = time.time()
     print('Building test set.')
     test['parcelid'] = test['ParcelId']
     df_test = test.merge(properties, how='left', on='parcelid')
 
+    store.put('x_train', x_train)
+    store.put('y_train', y_train)
+    store.put('df_test', df_test)
+
     print("--- %s seconds ---" % (time.time() - start_time))
 
+def load_data():
+    start_time = time.time()
+
+    x_train = store.get('x_train')
+    y_train = store.get('y_train')
+    df_test = store.get('df_test')
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    return x_train, y_train, df_test
+
+def run():
+    x_train, y_train, df_test = load_data()
     y_train_mean = np.mean(y_train)
 
     print('Training the model with cross validation.')
@@ -109,4 +115,5 @@ def run():
 
 
 if __name__ == "__main__":
+    # save_data()
     run()
