@@ -56,7 +56,7 @@ def save_data():
     df_test = test.merge(properties, how='left', on='parcelid')
 
     store.put('x_train', x_train, data_columns=x_train.columns)
-    store.put('y_train', y_train, data_columns=y_train.columns)
+    store.put('y_train', y_train)
     store.put('df_test', df_test, data_columns=df_test.columns)
 
     print("--- %s seconds ---" % (time.time() - start_time))
