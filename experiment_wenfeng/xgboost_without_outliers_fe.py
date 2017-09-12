@@ -48,7 +48,7 @@ def save_data():
     x_train = train_with_properties.drop(
         ['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc',
          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
-    y_train = train_with_properties['logerror']
+    y_train = train_with_properties['logerror'].values
 
     print('Building test set.')
     test['parcelid'] = test['ParcelId']
