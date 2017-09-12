@@ -1,4 +1,5 @@
 # Common utils shared by different models.
+from sklearn.preprocessing import LabelEncoder
 import data_utils as du
 import numpy as np
 
@@ -9,21 +10,36 @@ OUTLIER_LOWER_BOUND = -0.4
 
 RESULT_FILE = "../../data/result.csv"
 
-def get_train_data(encode_non_object, standard_scaler_flag=False):
+
+def encode_data(df, encode_non_object):
+    print('Encoding missing data.')
+    for column in df.columns:
+        if df[column].dtype == 'object':
+            df[column].fillna(-1, inplace=True)
+            label_encoder = LabelEncoder()
+            list_value = list(df[column].values)
+            label_encoder.fit(list_value)
+            df[column] = label_encoder.transform(list_value)
+        elif encode_non_object:
+            df[column].fillna(-1, inplace=True)
+    return df
+
+
+def get_train_data(encode_non_object):
     print('Getting train data.')
-    train = du.get_completed_train_data(encode_non_object, standard_scaler_flag)
+    train = du.get_completed_train_data(encode_non_object)
     train = train[train.logerror > OUTLIER_LOWER_BOUND]
     train = train[train.logerror < OUTLIER_UPPER_BOUND]
-    X = train.drop(['parcelid', 'logerror', 'transactiondate', 'assessmentyear'], axis=1)
-                    # 'propertyzoningdesc', 'propertycountylandusecode',
-                    # 'fireplacecnt', 'fireplaceflag'], axis=1)
+    X = train.drop(['parcelid', 'logerror', 'transactiondate',
+                    'propertyzoningdesc', 'propertycountylandusecode',
+                    'fireplacecnt', 'fireplaceflag'], axis=1)
     y = train['logerror'].values
     return X, y
 
 
-def get_test_data(encode_non_object, standard_scaler_flag=False):
+def get_test_data(encode_non_object):
     print('Getting test data.')
-    return du.get_completed_test_data(encode_non_object, standard_scaler_flag)
+    return du.get_completed_test_data(encode_non_object)
 
 
 def get_one_kfold(length, split_index):
