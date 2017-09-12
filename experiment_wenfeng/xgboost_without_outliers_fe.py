@@ -14,7 +14,7 @@ FOLDS = 5
 PICKLE_FILE = '../../data/xgboost_without_outliers_fe.p'
 
 def save_data():
-    start_time = time()
+    start_time = time.time()
     print('Reading training data, properties and test data.')
     train = pd.read_csv("../../data/train_2016_v2.csv")
     properties = pd.read_csv('../../data/properties_2016.csv')
@@ -58,7 +58,7 @@ def save_data():
     print("--- %s seconds ---" % (time.time() - start_time))
 
 def load_data():
-    start_time = time()
+    start_time = time.time()
 
     with open(PICKLE_FILE, 'rb') as fp:
       x_train, y_train, df_test = cPickle.load(fp)
