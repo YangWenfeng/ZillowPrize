@@ -10,10 +10,7 @@ import time
 OUTLIER_UPPER_BOUND = 0.419
 OUTLIER_LOWER_BOUND = -0.4
 FOLDS = 5
-PICKLE_FILE = '../../data/xgboost_without_outliers_fe.p'
-
-store = pd.HDFStore('../../data/xgboost_without_outliers_fe.h5',
-                    'w', complib=str('zlib'), complevel=5)
+HDF_FILE = '../../data/xgboost_without_outliers_fe.h5'
 
 def save_data():
     start_time = time.time()
@@ -55,18 +52,20 @@ def save_data():
     test['parcelid'] = test['ParcelId']
     df_test = test.merge(properties, how='left', on='parcelid')
 
+    store = pd.HDFStore(HDF_FILE, 'w', complib=str('zlib'), complevel=5)
     store.put('x_train', x_train, data_columns=x_train.columns)
     store.put('y_train', y_train)
     store.put('df_test', df_test, data_columns=df_test.columns)
+    store.close()
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
 def load_data():
     start_time = time.time()
 
-    x_train = store.get('x_train')
-    y_train = store.get('y_train')
-    df_test = store.get('df_test')
+    x_train = pd.read_hdf(HDF_FILE, 'x_train')
+    y_train = pd.read_hdf(HDF_FILE, 'y_train')
+    df_test = pd.read_hdf(HDF_FILE, 'df_test')
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
