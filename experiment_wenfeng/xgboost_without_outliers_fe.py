@@ -52,7 +52,7 @@ def save_data():
     test['parcelid'] = test['ParcelId']
     df_test = test.merge(properties, how='left', on='parcelid')
 
-    store = pd.HDFStore(HDF_FILE, 'w', complib=str('zlib'), complevel=5)
+    store = pd.HDFStore(HDF_FILE, 'w', format='table', complib=str('zlib'), complevel=5)
     store.put('x_train', x_train, data_columns=x_train.columns)
     store.put('y_train', y_train)
     store.put('df_test', df_test, data_columns=df_test.columns)
