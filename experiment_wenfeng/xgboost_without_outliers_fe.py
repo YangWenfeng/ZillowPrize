@@ -65,7 +65,7 @@ cv_result = xgb.cv(
     early_stopping_rounds=50, verbose_eval=10, show_stdv=False)
 num_boost_rounds = int(round(len(cv_result) * np.sqrt(FOLDS/(FOLDS-1))))
 
-print('Cross validation result, test-mae-mean = %.8f' % cv_result['test-mean-mae'].values[-1])
+print('Cross validation result, test-mae-mean = %.8f' % cv_result['test-mae-mean'].values[-1])
 print('Use num_boost_rounds = %d' % num_boost_rounds)
 
 model = xgb.train(
