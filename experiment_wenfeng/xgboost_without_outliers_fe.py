@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import RobustScaler
 
 OUTLIER_UPPER_BOUND = 0.419
 OUTLIER_LOWER_BOUND = -0.4
@@ -42,11 +43,12 @@ print('Creating training and test data for xgboost.')
 x_train = train_with_properties.drop(
     ['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc',
      'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
-y_train = train_with_properties['logerror'].values
-y_train_mean = np.mean(y_train)
+y_train = train_with_properties['logerror']
+
+y_train_mean = y_train.mean()
 
 print('Training the model with cross validation.')
-d_train = xgb.DMatrix(x_train, y_train)
+d_train = xgb.DMatrix(x_train, y_train.values)
 
 # xgboost params
 xgb_params = {
@@ -67,6 +69,32 @@ num_boost_rounds = int(round(len(cv_result) * np.sqrt(FOLDS/(FOLDS-1))))
 
 print('Cross validation result, test-mae-mean = %.8f' % cv_result['test-mae-mean'].values[-1])
 print('Use num_boost_rounds = %d' % num_boost_rounds)
+
+def feature_scaler(x_train, y_train, xgb_params):
+    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
+
+    columns = ['taxamount', 'yearbuilt']
+    result = []
+    for col in columns:
+        scaler = RobustScaler()
+        x_train_new = x_train.copy()
+        x_train_new[col] = scaler.fit_transform(x_train_new[col])
+
+        d_train = xgb.DMatrix(x_train_new, y_train.values)
+        # cross validation.
+        cv_result = xgb.cv(
+            xgb_params, d_train, nfold=FOLDS, num_boost_round=350,
+            early_stopping_rounds=50, verbose_eval=10, show_stdv=False)
+
+        print('Cross validation result, test-mae-mean = %.8f' % cv_result['test-mae-mean'].values[-1])
+        result.append([col, cv_result['test-mae-mean'].values[-1]])
+
+    print '\n'.join(','.join([str(e) for e in one]) for one in result)
+
+feature_scaler(x_train, y_train, xgb_params)
+
+import sys
+sys.exit(0)
 
 model = xgb.train(
     dict(xgb_params, silent=1), d_train, num_boost_round=num_boost_rounds)
