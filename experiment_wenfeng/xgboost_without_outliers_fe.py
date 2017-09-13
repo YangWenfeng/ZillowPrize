@@ -78,7 +78,7 @@ def feature_scaler(x_train, y_train, xgb_params):
     for col in columns:
         scaler = RobustScaler()
         x_train_new = x_train.copy()
-        x_train_new[col] = scaler.fit_transform(x_train_new[col])
+        x_train_new[col] = scaler.fit_transform(x_train_new[[col]])[:, 0]
 
         d_train = xgb.DMatrix(x_train_new, y_train.values)
         # cross validation.
