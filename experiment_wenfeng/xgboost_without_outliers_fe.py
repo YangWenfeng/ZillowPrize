@@ -45,6 +45,26 @@ x_train = train_with_properties.drop(
      'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
 y_train = train_with_properties['logerror']
 
+print('Building test set.')
+test['parcelid'] = test['ParcelId']
+df_test = test.merge(properties, how='left', on='parcelid')
+
+def feature_scaler(x_train, df_test):
+    #
+    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
+    df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
+
+    #
+    columns = ['taxamount', 'yearbuilt']
+    for col in columns:
+        scaler = RobustScaler()
+        x_train[col] = scaler.fit_transform(x_train[[col]])[:, 0]
+        df_test[col] = scaler.transform(df_test[[col]])[:, 0]
+
+    return x_train, df_test
+
+x_train, df_test = feature_scaler(x_train, df_test)
+
 y_train_mean = y_train.mean()
 
 print('Training the model with cross validation.')
@@ -70,7 +90,12 @@ num_boost_rounds = int(round(len(cv_result) * np.sqrt(FOLDS/(FOLDS-1))))
 print('Cross validation result, test-mae-mean = %.8f' % cv_result['test-mae-mean'].values[-1])
 print('Use num_boost_rounds = %d' % num_boost_rounds)
 
-def feature_scaler(x_train, y_train, xgb_params):
+def feature_scaler_explore(x_train, y_train, xgb_params):
+    """
+    # default,  0.052649
+    # taxamount,0.052641
+    # yearbuilt,0.0526438
+    """
     x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
 
     columns = ['taxamount', 'yearbuilt']
@@ -91,17 +116,11 @@ def feature_scaler(x_train, y_train, xgb_params):
 
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
-feature_scaler(x_train, y_train, xgb_params)
-
-import sys
-sys.exit(0)
+# feature_scaler_explore(x_train, y_train, xgb_params)
 
 model = xgb.train(
     dict(xgb_params, silent=1), d_train, num_boost_round=num_boost_rounds)
 
-print('Building test set.')
-test['parcelid'] = test['ParcelId']
-df_test = test.merge(properties, how='left', on='parcelid')
 d_test = xgb.DMatrix(df_test[x_train.columns])
 
 print('Predicting on test data.')
