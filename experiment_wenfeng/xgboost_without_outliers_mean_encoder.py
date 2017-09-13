@@ -18,6 +18,8 @@
 # Drop rawcensustractandblock, censustractandblock
 # Training result: [230] train-mae:0.0507928 test-mae:0.0526542
 # Public score: 0.0645721
+# Add 2016-yearbuilt
+# Public score: 0.0645381
 
 import numpy as np
 import pandas as pd
@@ -43,6 +45,8 @@ for column in properties.columns:
         list_value = list(properties[column].values)
         label_encoder.fit(list_value)
         properties[column] = label_encoder.transform(list_value)
+
+properties['yearbuilt'] = 2016 - properties['yearbuilt']
 
 print ('Mean encode data.')
 mean_encoder = MeanEncoder(
