@@ -34,13 +34,14 @@ class OutlierEncoder:
 
     def __init__(self, method='iqr', replace='mean'):
         assert method in ['iqr', 'spe']
-        assert replace in ['nan', 'mean', 'median']
+        assert replace in ['nan', 'mean', 'median', 'boundary']
+        assert (replace == 'boundary' and method == 'iqr') or (replace != 'boundary')
 
         self._method = method
         self._replace = replace
         self._llimit = None
         self._ulimit = None
-        self._replace_value = np.nan
+        self._replace_value = [np.nan, np.nan]
 
     @staticmethod
     def get_series_percentile(series, lpercentile=0.5, upercentile=99.5):
@@ -65,17 +66,19 @@ class OutlierEncoder:
             self._llimit, self._ulimit = self.get_series_percentile(series)
 
         if self._replace == 'mean':
-            self._replace_value = series.mean()
+            self._replace_value = [series.mean(), series.mean()]
         elif self._replace == 'median':
-            self._replace_value = series.median()
-        elif self._replace_value == 'nan':
-            self._replace_value = np.nan
+            self._replace_value = [series.median(), series.median()]
+        elif self._replace == 'nan':
+            self._replace_value = [np.nan, np.nan]
+        elif self._replace == 'boundary':
+            self._replace_value = [self._llimit, self._ulimit]
 
     def transform(self, series):
         new_series = series.copy()
 
-        new_series.loc[new_series > self._ulimit] = self._replace_value
-        new_series.loc[new_series < self._llimit] = self._replace_value
+        new_series.loc[new_series > self._ulimit] = self._replace_value[1]
+        new_series.loc[new_series < self._llimit] = self._replace_value[0]
 
         return new_series
 
