@@ -1,11 +1,13 @@
 # Version 1: XGBoost without outlier.
 # Training result: [220] train-mae:0.0509354 test-mae:0.0526506
 # Public score: 0.0645843
+# LabelCountEncoder, Local CV: 0.05263960, Public score: 0.0645880
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import RobustScaler
+from feature_utils import LabelCountEncoder
 
 OUTLIER_UPPER_BOUND = 0.419
 OUTLIER_LOWER_BOUND = -0.4
