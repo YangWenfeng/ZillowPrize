@@ -98,7 +98,7 @@ def feature_outlier_explore(x_train, y_train, xgb_params):
     result = []
     for col in fe_columns:
         for method in ['iqr', 'spe']:
-            for replace in ['mean', 'median', 'nan']:
+            for replace in ['mean', 'median', 'boundary', 'nan']:
                 print 'col = %s, method = %s, replace = %s' % (col, method, replace)
 
                 x_train_new = x_train.copy()
@@ -115,6 +115,8 @@ def feature_outlier_explore(x_train, y_train, xgb_params):
                 print '%s,%s,%s,%.6f' % (col, method, replace, cv_result['test-mae-mean'].values[-1])
                 result.append([col, method, replace, cv_result['test-mae-mean'].values[-1]])
 
+    print 'Feature Engineering with OutlierEncoder.'
+    print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
 
 def feature_scaler_explore(x_train, y_train, xgb_params):
