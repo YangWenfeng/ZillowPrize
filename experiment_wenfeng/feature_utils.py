@@ -25,6 +25,60 @@ class LabelCountEncoder:
         return np.array([self._data.get(v, np.nan) for v in values])
 
 
+class OutlierEncoder:
+    """
+    Outlier Encoding
+    Author: Wenfeng Yang
+    Replace feature outliers with np.nan or other values like mean, median etc
+    """
+
+    def __init__(self, method='iqr', replace='mean'):
+        assert method in ['iqr', 'spe']
+        assert replace in ['nan', 'mean', 'median']
+
+        self._method = method
+        self._replace = replace
+        self._llimit = None
+        self._ulimit = None
+        self._replace_value = np.nan
+
+    @staticmethod
+    def get_series_percentile(series, lpercentile=0.5, upercentile=99.5):
+        new_series = series[series.notnull()]
+
+        llimit = np.percentile(new_series.values, lpercentile)
+        ulimit = np.percentile(new_series.values, upercentile)
+
+        return llimit, ulimit
+
+    @staticmethod
+    def get_series_q1q3(series):
+        return OutlierEncoder.get_series_percentile(series, 25, 75)
+
+    def fit(self, series):
+        if self._method == 'iqr':
+            q1, q3 = self.get_series_q1q3(series)
+            iqr = q3 - q1
+            self._llimit = q1 - 1.5 * iqr
+            self._ulimit = q3 + 1.5 * iqr
+        elif self._method == 'spe':
+            self._llimit, self._ulimit = self.get_series_percentile(series)
+
+        if self._replace == 'mean':
+            self._replace_value = series.mean()
+        elif self._replace == 'median':
+            self._replace_value = series.median()
+        elif self._replace_value == 'nan':
+            self._replace_value = np.nan
+
+    def transform(self, series):
+        new_series = series.copy()
+
+        new_series.loc[new_series > self._ulimit] = self._replace_value
+        new_series.loc[new_series < self._llimit] = self._replace_value
+
+        return new_series
+
 def get_feature_importance_df(importance_type='gain'):
     from xgboost_baseline import XGBoostModel
 
