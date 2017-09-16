@@ -26,6 +26,8 @@ for column in properties.columns:
         label_encoder.fit(list_value)
         properties[column] = label_encoder.transform(list_value)
 
+properties['yearbuilt'] = 2016 - properties['yearbuilt']
+
 print('Combining training data with properties.')
 train_with_properties = train.merge(properties, how='left', on='parcelid')
 print('Original training data with properties shape: {}'
@@ -50,10 +52,6 @@ test['parcelid'] = test['ParcelId']
 df_test = test.merge(properties, how='left', on='parcelid')
 
 def feature_scaler(x_train, df_test):
-    #
-    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
-    df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
-
     #
     columns = ['taxamount', 'yearbuilt']
     for col in columns:
@@ -92,9 +90,9 @@ print('Use num_boost_rounds = %d' % num_boost_rounds)
 
 def feature_scaler_explore(x_train, y_train, xgb_params):
     """
-    # default,  0.052649
-    # taxamount,0.052641
-    # yearbuilt,0.0526438
+    # default localCV: 0.05264420
+    # RobustScaler only with taxamount, LocalCV: 0.05264420, PB: 0.0645843
+    # RobustScaler with taxamount & yearbuilt, LocalCV: 0.05263960, PB: 0.0645880
     """
     x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
 
