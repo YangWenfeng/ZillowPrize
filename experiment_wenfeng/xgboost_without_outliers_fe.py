@@ -8,6 +8,7 @@ import xgboost as xgb
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import RobustScaler
 from feature_utils import LabelCountEncoder
+from feature_utils import OutlierEncoder
 
 OUTLIER_UPPER_BOUND = 0.419
 OUTLIER_LOWER_BOUND = -0.4
@@ -27,6 +28,9 @@ for column in properties.columns:
         list_value = list(properties[column].values)
         label_encoder.fit(list_value)
         properties[column] = label_encoder.transform(list_value)
+
+fe_columns = ['yearbuilt', 'taxamount']
+properties.replace(to_replace=fe_columns, value=np.nan, inplace=True)
 
 properties['yearbuilt'] = 2016 - properties['yearbuilt']
 
@@ -63,7 +67,7 @@ def feature_scaler(x_train, df_test):
 
     return x_train, df_test
 
-x_train, df_test = feature_scaler(x_train, df_test)
+# x_train, df_test = feature_scaler(x_train, df_test)
 
 y_train_mean = y_train.mean()
 
@@ -90,13 +94,35 @@ num_boost_rounds = int(round(len(cv_result) * np.sqrt(FOLDS/(FOLDS-1))))
 print('Cross validation result, test-mae-mean = %.8f' % cv_result['test-mae-mean'].values[-1])
 print('Use num_boost_rounds = %d' % num_boost_rounds)
 
+def feature_outlier_explore(x_train, y_train, xgb_params):
+    result = []
+    for col in fe_columns:
+        for method in ['iqr', 'spe']:
+            for replace in ['mean', 'median', 'nan']:
+                print 'col = %s, method = %s, replace = %s' % (col, method, replace)
+
+                x_train_new = x_train.copy()
+                outlier_encoder = OutlierEncoder(method=method, replace=replace)
+                outlier_encoder.fit(x_train_new[col])
+                x_train_new[col] = outlier_encoder.transform(x_train_new[col])
+
+                d_train = xgb.DMatrix(x_train_new, y_train.values)
+                # cross validation.
+                cv_result = xgb.cv(
+                    xgb_params, d_train, nfold=FOLDS, num_boost_round=350,
+                    early_stopping_rounds=50, verbose_eval=10, show_stdv=False)
+
+                print '%s,%s,%s,%.6f' % (col, method, replace, cv_result['test-mae-mean'].values[-1])
+                result.append([col, method, replace, cv_result['test-mae-mean'].values[-1]])
+
+
+
 def feature_scaler_explore(x_train, y_train, xgb_params):
     """
     # default localCV: 0.05264420
     # RobustScaler only with taxamount, LocalCV: 0.05264420, PB: 0.0645843
     # RobustScaler with taxamount & yearbuilt, LocalCV: 0.05263960, PB: 0.0645880
     """
-    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
 
     columns = ['taxamount', 'yearbuilt']
     result = []
@@ -117,6 +143,9 @@ def feature_scaler_explore(x_train, y_train, xgb_params):
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
 # feature_scaler_explore(x_train, y_train, xgb_params)
+feature_outlier_explore(x_train, y_train, xgb_params)
+import sys
+sys.exit(0)
 
 model = xgb.train(
     dict(xgb_params, silent=1), d_train, num_boost_round=num_boost_rounds)
