@@ -58,7 +58,7 @@ test['parcelid'] = test['ParcelId']
 df_test = test.merge(properties, how='left', on='parcelid')
 
 def feature_scaler(x_train, df_test):
-    #
+    print 'Feature Scaler.'
     columns = ['taxamount', 'yearbuilt']
     for col in columns:
         scaler = RobustScaler()
@@ -67,7 +67,24 @@ def feature_scaler(x_train, df_test):
 
     return x_train, df_test
 
+def feature_outlier(x_train, df_test):
+    print 'Feature Outlier.'
+    outlier_encoder = OutlierEncoder(method='iqr', replace='median')
+    col = 'yearbuilt'
+    outlier_encoder.fit(x_train[col])
+    x_train[col] = outlier_encoder.transform(x_train[col])
+    df_test[col] = outlier_encoder.transform(df_test[col])
+
+    outlier_encoder = OutlierEncoder(method='spe', replace='mean')
+    col = 'taxamount'
+    outlier_encoder.fit(x_train[col])
+    x_train[col] = outlier_encoder.transform(x_train[col])
+    df_test[col] = outlier_encoder.transform(df_test[col])
+
+    return x_train, df_test
+
 # x_train, df_test = feature_scaler(x_train, df_test)
+x_train, df_test = feature_outlier(x_train, df_test)
 
 y_train_mean = y_train.mean()
 
@@ -147,9 +164,9 @@ def feature_scaler_explore(x_train, y_train, xgb_params):
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
 # feature_scaler_explore(x_train, y_train, xgb_params)
-feature_outlier_explore(x_train, y_train, xgb_params)
-import sys
-sys.exit(0)
+# feature_outlier_explore(x_train, y_train, xgb_params)
+# import sys
+# sys.exit(0)
 
 model = xgb.train(
     dict(xgb_params, silent=1), d_train, num_boost_round=num_boost_rounds)
