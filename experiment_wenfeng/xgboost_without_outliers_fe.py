@@ -99,6 +99,8 @@ def feature_outlier_explore(x_train, y_train, xgb_params):
     for col in fe_columns:
         for method in ['iqr', 'spe']:
             for replace in ['mean', 'median', 'boundary', 'nan']:
+                if replace == 'boundary' and method != 'iqr':
+                    continue
                 print 'col = %s, method = %s, replace = %s' % (col, method, replace)
 
                 x_train_new = x_train.copy()
