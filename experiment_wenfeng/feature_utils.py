@@ -3,6 +3,28 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import common_utils as cu
 
+class LabelCountEncoder:
+    """
+    LabelCount Encoding
+    Author: Wenfeng Yang
+    Inspired by: https://www.slideshare.net/HJvanVeen/feature-engineering-72376750
+    """
+    def __init__(self):
+        self._data = None
+
+    def fit(self, values):
+        series = pd.Series(values)
+        vc = series.value_counts()
+        vc = vc.sort_values(ascending=True, inplace=False)
+
+        self._data = dict()
+        for i, v in enumerate(vc.index):
+            self._data[v] = i
+
+    def transform(self, values):
+        return np.array([self._data.get(v, np.nan) for v in values])
+
+
 def get_feature_importance_df(importance_type='gain'):
     from xgboost_baseline import XGBoostModel
 
