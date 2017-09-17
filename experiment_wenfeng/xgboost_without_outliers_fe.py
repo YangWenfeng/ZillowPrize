@@ -215,12 +215,12 @@ def run():
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) >= 4 and 'nodebug' == sys.argv[-1]:
+    if len(sys.argv) >= 3 and 'nodebug' == sys.argv[-1]:
         debug = False
 
     func_name = 'run'
-    if len(sys.argv) >= 3:
-        func_name = sys.argv[2]
+    if len(sys.argv) >= 2:
+        func_name = sys.argv[1]
 
     # explore_feature_scaler, explore_feature_outlier
     # func_name = 'explore_feature_scaler'
