@@ -2,10 +2,18 @@
 #
 # Training result: [192] train-mae:0.051412 holdout-mae:0.051941
 # Public score: 0.0646266
+# MeanEncoder: regionidcity, regionidneighborhood & regionidzip
+# Training result: [184] train-mae:0.051441 holdout-mae:0.051887
+# Public score: 0.0646764
+# MeanEncoder: regionidcity, regionidneighborhood & regionidzip,
+# and encode_non_object = True
+# Training result: [208] train-mae:0.051245 holdout-mae:0.051934
+# Public score: 0.0647191
+
 import common_utils as cu
 import xgboost as xgb
 from mean_encoder import MeanEncoder
-
+import pandas as pd
 
 class XGBoostModel(object):
     def __init__(self):
@@ -43,7 +51,7 @@ def run():
         target_type='regression'
     )
 
-    X = mean_encoder.fit_transform(X, y)
+    X = mean_encoder.fit_transform(X, pd.Series(y))
     X = X.drop(mean_encoder.categorical_features, axis=1)
 
     # get CV from train data.

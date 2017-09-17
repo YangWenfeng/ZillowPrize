@@ -2,6 +2,7 @@
 # Training result: [220] train-mae:0.0509354 test-mae:0.0526506
 # Public score: 0.0645843
 # LabelCountEncoder, Local CV: 0.05263960, Public score: 0.0645880
+# OutlierEncoder with yearbuilt and taxamount, Local CV: 0.05263700, Public score: 0.0645934
 import numpy as np
 import pandas as pd
 import xgboost as xgb
