@@ -115,7 +115,7 @@ def train_and_predict(x_train, y_train, df_test, num_boost_rounds, output_suffix
     for column in test.columns[test.columns != 'ParcelId']:
         test[column] = p_test
 
-    output_file = '../../data/xgboost_without_outlier_{}.csv'.format(output_suffix)
+    output_file = '../../data/xgboost_without_outlier{}.csv'.format(output_suffix)
     print('Writing to csv [%s].' % output_file)
     test.to_csv(output_file, index=False, float_format='%.4f')
 
@@ -130,6 +130,12 @@ def feature_scaler(x_train, df_test):
     return x_train, df_test
 
 def feature_outlier(x_train, df_test):
+    fe_columns = ['taxamount', 'yearbuilt']
+
+    # reset nan
+    x_train = reset_nan(x_train, fe_columns)
+    df_test = reset_nan(df_test, fe_columns)
+
     print 'Feature Outlier.'
     outlier_encoder = OutlierEncoder(method='iqr', replace='median')
     col = 'yearbuilt'
@@ -142,6 +148,9 @@ def feature_outlier(x_train, df_test):
     outlier_encoder.fit(x_train[col])
     x_train[col] = outlier_encoder.transform(x_train[col])
     df_test[col] = outlier_encoder.transform(df_test[col])
+
+    x_train.fillna(-1, inplace=True)
+    df_test.fillna(-1, inplace=True)
 
     return x_train, df_test
 
@@ -195,6 +204,16 @@ def explore_feature_scaler():
 
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
+def run_feature_outlier():
+    x_train, y_train, df_test = get_train_test_data()
+
+    x_train, df_test = feature_outlier(x_train, df_test)
+
+    best_score, num_boost_rounds = xgboost_cross_validation(
+        x_train, y_train
+    )
+
+    train_and_predict(x_train, y_train, df_test, num_boost_rounds, output_suffix='_fe_outlier')
 
 def run():
     x_train, y_train, df_test = get_train_test_data()
