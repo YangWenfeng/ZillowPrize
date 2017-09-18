@@ -219,6 +219,9 @@ def explore_feature_geo():
 
     df = df_test[['regionidzip', 'latitude', 'longitude']]
     df = reset_nan(df, df.columns.values)
+    df['latitude'] /= 1e6
+    df['longitude'] /= 1e6
+
     latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
     longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
 
