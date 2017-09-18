@@ -1,6 +1,7 @@
 # Version 1: XGBoost without outlier.
 # Training result: [220] train-mae:0.0509354 test-mae:0.0526506
 # Public score: 0.0645843
+# FE OutlierEncoder taxamount/yearbuilt 0.0646074
 
 
 import numpy as np
@@ -149,8 +150,8 @@ def feature_outlier(x_train, df_test):
     x_train[col] = outlier_encoder.transform(x_train[col])
     df_test[col] = outlier_encoder.transform(df_test[col])
 
-    x_train.fillna(-1, inplace=True)
-    df_test.fillna(-1, inplace=True)
+    # x_train.fillna(-1, inplace=True)
+    # df_test.fillna(-1, inplace=True)
 
     return x_train, df_test
 
