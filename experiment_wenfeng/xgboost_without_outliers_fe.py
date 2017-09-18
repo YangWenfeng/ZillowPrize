@@ -254,6 +254,43 @@ def explore_feature_geo():
 
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
+def run_feature_geo():
+    from geopy.distance import great_circle
+    x_train, y_train, df_test = get_train_test_data()
+
+    df = df_test[['regionidzip', 'latitude', 'longitude']]
+    df = reset_nan(df, df.columns.values)
+
+    latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
+    longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
+
+    def get_distance(regionidzip, latitude, longitude):
+        latitude_mean = latitude_dict.get(regionidzip, np.nan)
+        longitude_mean = longitude_dict.get(regionidzip, np.nan)
+        if latitude == np.nan or longitude == np.nan or latitude_mean == np.nan or longitude_mean == np.nan:
+            return np.nan
+
+        ret = great_circle((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
+        return ret
+
+    x_train['regionidzip_centroid_distance'] = [
+        get_distance(z, lat, lng)
+        for z, lat, lng in zip(x_train['regionidzip'],
+                               x_train['latitude'],
+                               x_train['longitude'])
+        ]
+    df_test['regionidzip_centroid_distance'] = [
+        get_distance(z, lat, lng)
+        for z, lat, lng in zip(df_test['regionidzip'],
+                               df_test['latitude'],
+                               df_test['longitude'])
+        ]
+
+    best_score, num_boost_rounds = xgboost_cross_validation(
+        x_train, y_train
+    )
+
+    train_and_predict(x_train, y_train, df_test, num_boost_rounds, output_suffix='_fe_geo')
 
 def run_feature_outlier():
     x_train, y_train, df_test = get_train_test_data()
