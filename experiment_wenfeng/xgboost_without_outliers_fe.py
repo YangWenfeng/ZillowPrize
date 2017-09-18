@@ -210,6 +210,9 @@ def explore_feature_interaction():
     pass
 
 def explore_feature_geo():
+    """
+    Local CV: 0.05265520, 0.0526552
+    """
     from geopy.distance import great_circle, vincenty
 
     x_train, y_train, df_test = get_train_test_data()
@@ -224,9 +227,13 @@ def explore_feature_geo():
 
         latitude_mean = latitude_dict.get(regionidzip, np.nan)
         longitude_mean = longitude_dict.get(regionidzip, np.nan)
-        if latitude == np.nan or longitude == np.nan:
+        if latitude == np.nan or longitude == np.nan or latitude_mean == np.nan or longitude_mean == np.nan:
             return np.nan
-        ret = great_circle((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
+
+        if dist == 'great_circle':
+            ret = great_circle((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
+        else:
+            ret = vincenty((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
         return ret
 
     result = []
