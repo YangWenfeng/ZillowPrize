@@ -44,6 +44,8 @@ def get_train_test_data():
 
     print('Encoding missing data.')
     for column in properties.columns:
+        if column in ['latitude', 'longitude']:
+            properties[column] /= 1e6
         properties[column].fillna(-1, inplace=True)
         if properties[column].dtype == 'object':
             label_encoder = LabelEncoder()
@@ -219,8 +221,6 @@ def explore_feature_geo():
 
     df = df_test[['regionidzip', 'latitude', 'longitude']]
     df = reset_nan(df, df.columns.values)
-    df['latitude'] /= 1e6
-    df['longitude'] /= 1e6
 
     latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
     longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
