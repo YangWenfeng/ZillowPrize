@@ -312,6 +312,8 @@ def explore_feature_geo():
 def run_fe_merge():
     x_train, y_train, df_test = get_train_test_data()
 
+    # [220]	train-mae:0.05082	test-mae:0.0526292
+    # test-mae-mean = 0.05262340
     # yearbuilt
     x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
     df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
@@ -335,10 +337,10 @@ def run_fe_merge():
     #     df_test[col] = lce.transform(df_test[col])
 
     # add_feature_division
-    # x_train, df_test = FeatureInteraction(True).add_feature_division(
-    #     x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
-    # x_train, df_test = FeatureInteraction(True).add_feature_division(
-    #     x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
+    x_train, df_test = FeatureInteraction(True).add_feature_division(
+        x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
+    x_train, df_test = FeatureInteraction(True).add_feature_division(
+        x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
 
     best_score, num_boost_rounds = xgboost_cross_validation(
         x_train, y_train
