@@ -11,6 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import RobustScaler
 from feature_utils import LabelCountEncoder, FeatureInteraction
 from feature_utils import OutlierEncoder
+from mean_encoder import MeanEncoder
 
 OUTLIER_UPPER_BOUND = 0.419
 OUTLIER_LOWER_BOUND = -0.4
@@ -309,6 +310,20 @@ def explore_feature_geo():
 
 def run_fe_merge():
     x_train, y_train, df_test = get_train_test_data()
+
+    # yearbuilt
+    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
+    df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
+
+    # MeanEncoder
+    mean_encoder = MeanEncoder(
+        categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
+        target_type='regression'
+    )
+
+    x_train = mean_encoder.fit_transform(x_train, y_train)
+    x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
+    df_test = mean_encoder.transform(df_test)
 
     # LabelCountEncoder
     for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
