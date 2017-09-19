@@ -86,8 +86,9 @@ def xgboost_cross_validation(x_train, y_train):
     d_train = xgb.DMatrix(x_train, y_train.values)
 
     # cross validation.
+    num_boost_round = 350 if not debug else 10
     cv_result = xgb.cv(
-        xgb_params, d_train, nfold=FOLDS, num_boost_round=350,
+        xgb_params, d_train, nfold=FOLDS, num_boost_round=num_boost_round,
         early_stopping_rounds=50, verbose_eval=10, show_stdv=False)
     num_boost_rounds = int(round(len(cv_result) * np.sqrt(FOLDS/(FOLDS-1))))
 
@@ -208,12 +209,59 @@ def explore_feature_scaler():
 def explore_feature_interaction():
     x_train, y_train, df_test = get_train_test_data()
 
-    # add_feature_missing_count
-    x_train, df_test = FeatureInteraction.add_feature_missing_count(x_train.copy(), df_test.copy())
-
     result = []
-    best_score, _ = xgboost_cross_validation(x_train, y_train)
-    result.append(['add_feature_missing_count', best_score])
+
+    # print 'add_feature_missing_count'
+    # x_train, df_test = FeatureInteraction.add_feature_missing_count(x_train.copy(), df_test.copy())
+    # best_score, _ = xgboost_cross_validation(x_train, y_train)
+    # result.append(['add_feature_missing_count', best_score])
+    # print 'result', ','.join(str(e) for e in result[-1])
+    #
+    # print 'add_regionidzip_centroid_distance'
+    # x_train, df_test = FeatureInteraction.add_regionidzip_centroid_distance(x_train.copy(), df_test.copy())
+    # best_score, _ = xgboost_cross_validation(x_train, y_train)
+    # result.append(['regionidzip_centroid_distance', best_score])
+    # print 'result', ','.join(str(e) for e in result[-1])
+    #
+    # print 'add_feature_division'
+    # for col1 in ['structuretaxvaluedollarcnt', 'taxamount', 'landtaxvaluedollarcnt']:
+    #     for col2 in ['calculatedfinishedsquarefeet', 'lotsizesquarefeet']:
+    #         x_train, df_test = FeatureInteraction.add_feature_division(x_train.copy(), df_test.copy(), col1, col2)
+    #         best_score, _ = xgboost_cross_validation(x_train, y_train)
+    #         result.append(['add_feature_division_%s_div_%s' % (col1, col2), best_score])
+    #         print 'result', ','.join(str(e) for e in result[-1])
+    #
+    # print 'add_feature_mod'
+    # for col in ['structuretaxvaluedollarcnt', 'landtaxvaluedollarcnt', 'taxvaluedollarcnt', 'taxamount']:
+    #     for num in [10, 100, 1000, 10000]:
+    #         x_train, df_test = FeatureInteraction.add_feature_mod(x_train.copy(), df_test.copy(), col, num)
+    #         best_score, _ = xgboost_cross_validation(x_train, y_train)
+    #         result.append(['add_feature_mod_%s_mod_%d' % (col, num), best_score])
+    #         print 'result', ','.join(str(e) for e in result[-1])
+    #
+    # for col in ['lotsizesquarefeet', 'calculatedfinishedsquarefeet', 'finishedsquarefeet12']:
+    #     for num in [10, 20, 50, 100]:
+    #         x_train, df_test = FeatureInteraction.add_feature_mod(x_train.copy(), df_test.copy(), col, num)
+    #         best_score, _ = xgboost_cross_validation(x_train, y_train)
+    #         result.append(['add_feature_mod_%s_mod_%d' % (col, num), best_score])
+    #         print 'result', ','.join(str(e) for e in result[-1])
+
+    print 'add_feature_around'
+    for decimals in [0, 1, 2, 3, 4, 5, 6, 7]:
+        x_train, df_test = FeatureInteraction.add_feature_around(x_train.copy(), df_test.copy(), 'latitude', decimals)
+        x_train, df_test = FeatureInteraction.add_feature_around(x_train, df_test, 'longitude', decimals)
+        best_score, _ = xgboost_cross_validation(x_train, y_train)
+        result.append(['add_feature_%s_around_%d' % ('latitudelongitude', decimals), best_score])
+        print 'result', ','.join(str(e) for e in result[-1])
+
+    print 'add_feature_log'
+    for col in ['structuretaxvaluedollarcnt', 'landtaxvaluedollarcnt', 'taxvaluedollarcnt', 'taxamount',
+                'lotsizesquarefeet', 'calculatedfinishedsquarefeet', 'finishedsquarefeet12']:
+        for num in [10, 100, 1000, 10000]:
+            x_train, df_test = FeatureInteraction.add_feature_log(x_train.copy(), df_test.copy(), col)
+            best_score, _ = xgboost_cross_validation(x_train, y_train)
+            result.append(['add_feature_mod_%s_mod_%d' % (col, num), best_score])
+            print 'result', ','.join(str(e) for e in result[-1])
 
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
