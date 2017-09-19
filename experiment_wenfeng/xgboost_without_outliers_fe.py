@@ -2,6 +2,7 @@
 # Training result: [220] train-mae:0.0509354 test-mae:0.0526506
 # Public score: 0.0645843
 # FE OutlierEncoder taxamount/yearbuilt 0.0646074
+# FE Merge without MeanEncoder, PB
 
 
 import numpy as np
@@ -311,19 +312,19 @@ def explore_feature_geo():
 def run_fe_merge():
     x_train, y_train, df_test = get_train_test_data()
 
-    # yearbuilt
-    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
-    df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
-
-    # MeanEncoder
-    mean_encoder = MeanEncoder(
-        categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
-        target_type='regression'
-    )
-
-    x_train = mean_encoder.fit_transform(x_train, y_train)
-    x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
-    df_test = mean_encoder.transform(df_test)
+    # # yearbuilt
+    # x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
+    # df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
+    #
+    # # MeanEncoder
+    # mean_encoder = MeanEncoder(
+    #     categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
+    #     target_type='regression'
+    # )
+    #
+    # x_train = mean_encoder.fit_transform(x_train, y_train)
+    # x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
+    # df_test = mean_encoder.transform(df_test)
 
     # LabelCountEncoder
     for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
@@ -334,10 +335,10 @@ def run_fe_merge():
         df_test[col] = lce.transform(df_test[col])
 
     # add_feature_division
-    x_train, df_test = FeatureInteraction(True).add_feature_division(
-        x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
-    x_train, df_test = FeatureInteraction(True).add_feature_division(
-        x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
+    # x_train, df_test = FeatureInteraction(True).add_feature_division(
+    #     x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
+    # x_train, df_test = FeatureInteraction(True).add_feature_division(
+    #     x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
 
     best_score, num_boost_rounds = xgboost_cross_validation(
         x_train, y_train
