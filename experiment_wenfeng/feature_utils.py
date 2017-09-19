@@ -156,8 +156,9 @@ class FeatureInteraction:
 
         print "x_train['feature_missing_count'].mean = %.6f." % \
               x_train['feature_missing_count'].mean()
-        print "df_test['feature_missing_count'].mean = %.6f." % \
-              df_test['feature_missing_count'].mean()
+        if self.flag:
+            print "df_test['feature_missing_count'].mean = %.6f." % \
+                  df_test['feature_missing_count'].mean()
 
         return x_train, df_test
 
