@@ -307,14 +307,28 @@ def explore_feature_geo():
 
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
-def run_feature_geo():
+def run_fe_merge():
     x_train, y_train, df_test = get_train_test_data()
-    x_train, df_test = FeatureInteraction.add_regionidzip_centroid_distance(x_train, df_test)
+
+    # LabelCountEncoder
+    for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
+                'rawcensustractandblock']:
+        lce = LabelCountEncoder()
+        lce.fit(x_train[col])
+        x_train[col] = lce.transform(x_train[col])
+        df_test[col] = lce.transform(df_test[col])
+
+    # add_feature_division
+    x_train, df_test = FeatureInteraction(True).add_feature_division(
+        x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
+    x_train, df_test = FeatureInteraction(True).add_feature_division(
+        x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
+
     best_score, num_boost_rounds = xgboost_cross_validation(
         x_train, y_train
     )
 
-    train_and_predict(x_train, y_train, df_test, num_boost_rounds, output_suffix='_fe_geo')
+    train_and_predict(x_train, y_train, df_test, num_boost_rounds, output_suffix='_fe_merge')
 
 def run_feature_outlier():
     x_train, y_train, df_test = get_train_test_data()
