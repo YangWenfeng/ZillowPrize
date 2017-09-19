@@ -312,27 +312,27 @@ def explore_feature_geo():
 def run_fe_merge():
     x_train, y_train, df_test = get_train_test_data()
 
-    # # yearbuilt
-    # x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
-    # df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
-    #
-    # # MeanEncoder
-    # mean_encoder = MeanEncoder(
-    #     categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
-    #     target_type='regression'
-    # )
-    #
-    # x_train = mean_encoder.fit_transform(x_train, y_train)
-    # x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
-    # df_test = mean_encoder.transform(df_test)
+    # yearbuilt
+    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
+    df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
+
+    # MeanEncoder
+    mean_encoder = MeanEncoder(
+        categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
+        target_type='regression'
+    )
+
+    x_train = mean_encoder.fit_transform(x_train, y_train)
+    x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
+    df_test = mean_encoder.transform(df_test)
 
     # LabelCountEncoder
-    for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
-                'rawcensustractandblock']:
-        lce = LabelCountEncoder()
-        lce.fit(x_train[col])
-        x_train[col] = lce.transform(x_train[col])
-        df_test[col] = lce.transform(df_test[col])
+    # for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
+    #             'rawcensustractandblock']:
+    #     lce = LabelCountEncoder()
+    #     lce.fit(x_train[col])
+    #     x_train[col] = lce.transform(x_train[col])
+    #     df_test[col] = lce.transform(df_test[col])
 
     # add_feature_division
     # x_train, df_test = FeatureInteraction(True).add_feature_division(
