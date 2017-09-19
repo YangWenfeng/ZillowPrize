@@ -191,10 +191,10 @@ class FeatureInteraction:
         df_test['latitude'].replace(to_replace=-1, value=np.nan, inplace=True)
         df_test['longitude'].replace(to_replace=-1, value=np.nan, inplace=True)
 
-        df = df_test[['regionidzip', 'latitude', 'longitude']]
+        df = df_test[['regionidzip_pred', 'latitude', 'longitude']]
 
-        latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
-        longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
+        latitude_dict = df.groupby(['regionidzip_pred'])['latitude'].mean().to_dict()
+        longitude_dict = df.groupby(['regionidzip_pred'])['longitude'].mean().to_dict()
 
         def get_distance(regionidzip, latitude, longitude):
             if regionidzip == -1 or regionidzip == np.nan:
@@ -208,25 +208,25 @@ class FeatureInteraction:
             ret = great_circle((latitude_mean/1e6, longitude_mean/1e6, ), (latitude/1e6, longitude/1e6, )).miles
             return ret
 
-        x_train['regionidzip_centroid_distance'] = [
+        x_train['regionidzip_pred_centroid_distance'] = [
             get_distance(z, lat, lng)
-            for z, lat, lng in zip(x_train['regionidzip'],
+            for z, lat, lng in zip(x_train['regionidzip_pred'],
                                    x_train['latitude'],
                                    x_train['longitude'])
             ]
         if not self.flag:
-            df_test['regionidzip_centroid_distance'] = [
+            df_test['regionidzip_pred_centroid_distance'] = [
                 get_distance(z, lat, lng)
-                for z, lat, lng in zip(df_test['regionidzip'],
+                for z, lat, lng in zip(df_test['regionidzip_pred'],
                                        df_test['latitude'],
                                        df_test['longitude'])
                 ]
 
         # output
-        print 'x_train["regionidzip_centroid_distance"].mean() = %.6f' %\
-              x_train['regionidzip_centroid_distance'].mean()
-        print 'df_test["regionidzip_centroid_distance"].mean() = %.6f' %\
-              df_test['regionidzip_centroid_distance'].mean()
+        print 'x_train["regionidzip_pred_centroid_distance"].mean() = %.6f' %\
+              x_train['regionidzip_pred_centroid_distance'].mean()
+        print 'df_test["regionidzip_pred_centroid_distance"].mean() = %.6f' %\
+              df_test['regionidzip_pred_centroid_distance'].mean()
 
         x_train.fillna(-1, inplace=True)
         df_test.fillna(-1, inplace=True)
