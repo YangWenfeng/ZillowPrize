@@ -84,75 +84,75 @@ class OutlierEncoder:
         return new_series
 
 class FeatureInteraction:
-    def __init__(self):
-        pass
+    def __init__(self, flag=False):
+        self.flag = flag
 
-    @staticmethod
-    def add_feature_mod(x_train, df_test, col, num):
+    def add_feature_mod(self, x_train, df_test, col, num):
         """
         计算mod特征
         """
         new_feature_name = '%s_mod_%d' % (col, num)
         x_train[new_feature_name] = x_train[col] // num
-        df_test[new_feature_name] = df_test[col] // num
+        if self.flag:
+            df_test[new_feature_name] = df_test[col] // num
 
         return x_train, df_test
 
-    @staticmethod
-    def add_feature_around(x_train, df_test, col, decimals):
+    def add_feature_around(self, x_train, df_test, col, decimals):
         """
         计算around特征
         """
         new_feature_name = '%s_around_%d' % (col, decimals)
         x_train[new_feature_name] = np.around(x_train[col], decimals)
-        df_test[new_feature_name] = np.around(df_test[col], decimals)
+        if self.flag:
+            df_test[new_feature_name] = np.around(df_test[col], decimals)
 
         return x_train, df_test
 
-    @staticmethod
-    def add_feature_exp(x_train, df_test, col):
+    def add_feature_exp(self, x_train, df_test, col):
         """
         计算exp特征
         """
         new_feature_name = '%s_exp' % col
         x_train[new_feature_name] = np.exp(x_train[col])
-        df_test[new_feature_name] = np.exp(df_test[col])
+        if self.flag:
+            df_test[new_feature_name] = np.exp(df_test[col])
 
         return x_train, df_test
 
-    @staticmethod
-    def add_feature_log(x_train, df_test, col):
+    def add_feature_log(self, x_train, df_test, col):
         """
         计算log特征
         """
         new_feature_name = '%s_log' % col
         x_train[new_feature_name] = np.log(x_train[col])
-        df_test[new_feature_name] = np.log(df_test[col])
+        if self.flag:
+            df_test[new_feature_name] = np.log(df_test[col])
 
         return x_train, df_test
 
-    @staticmethod
-    def add_feature_division(x_train, df_test, col1, col2):
+    def add_feature_division(self, x_train, df_test, col1, col2):
         """
         计算两个特征相除
         """
         new_feature_name = '%s_div_%s' % (col1, col2)
 
         x_train[new_feature_name] = x_train[col1] / x_train[col2]
-        df_test[new_feature_name] = df_test[col1] / df_test[col2]
+        if self.flag:
+            df_test[new_feature_name] = df_test[col1] / df_test[col2]
 
         return x_train, df_test
 
-    @staticmethod
-    def add_feature_missing_count(x_train, df_test):
+    def add_feature_missing_count(self, x_train, df_test):
         """
         计算每raw的missing feature的个数，作为新增属性
         """
         print 'Feature add feature missing count.'
         x_train['feature_missing_count'] = x_train.apply(
             lambda raw: sum([1 for e in raw if e == -1. or np.isnan(e)]), axis=1)
-        df_test['feature_missing_count'] = df_test.apply(
-            lambda raw: sum([1 for e in raw if e == -1. or np.isnan(e)]), axis=1)
+        if self.flag:
+            df_test['feature_missing_count'] = df_test.apply(
+                lambda raw: sum([1 for e in raw if e == -1. or np.isnan(e)]), axis=1)
 
         print "x_train['feature_missing_count'].mean = %.6f." % \
               x_train['feature_missing_count'].mean()
@@ -161,8 +161,7 @@ class FeatureInteraction:
 
         return x_train, df_test
 
-    @staticmethod
-    def add_regionidzip_centroid_distance(x_train, df_test):
+    def add_regionidzip_centroid_distance(self, x_train, df_test):
         """
         按regionidzip计算latitude&longitude的mean点，然后计算房屋距离中心点的距离，作为新增属性
         """
@@ -197,12 +196,13 @@ class FeatureInteraction:
                                    x_train['latitude'],
                                    x_train['longitude'])
             ]
-        df_test['regionidzip_centroid_distance'] = [
-            get_distance(z, lat, lng)
-            for z, lat, lng in zip(df_test['regionidzip'],
-                                   df_test['latitude'],
-                                   df_test['longitude'])
-            ]
+        if not self.flag:
+            df_test['regionidzip_centroid_distance'] = [
+                get_distance(z, lat, lng)
+                for z, lat, lng in zip(df_test['regionidzip'],
+                                       df_test['latitude'],
+                                       df_test['longitude'])
+                ]
 
         # output
         print 'x_train["regionidzip_centroid_distance"].mean() = %.6f' %\
