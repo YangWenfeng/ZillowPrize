@@ -1,3 +1,4 @@
+# -*- coding:utf8 -*-
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -83,15 +84,40 @@ class OutlierEncoder:
         return new_series
 
 class FeatureInteraction:
-    def __init__(self, x_train, df_test):
-        self.x_train = x_train
-        self.df_test = df_test
+    def __init__(self):
+        pass
 
-    def add_regionidzip_centroid_distance(self):
-        print 'Feature Add regionidzip centroid distance.'
+    @staticmethod
+    def add_feature_missing_count(x_train, df_test):
+        """
+        计算每raw的missing feature的个数，作为新增属性
+        :param x_train:
+        :param df_test:
+        :return:
+        """
+        print 'Feature add feature missing count.'
+        x_train['feature_missing_count'] = x_train.apply(
+            lambda raw: sum([1 for e in raw if e == -1. or np.isnan(e)]), axis=1)
+        df_test['feature_missing_count'] = df_test.apply(
+            lambda raw: sum([1 for e in raw if e == -1. or np.isnan(e)]), axis=1)
+
+        print "x_train['feature_missing_count'].mean = %.6f." % \
+              x_train['feature_missing_count'].mean()
+        print "df_test['feature_missing_count'].mean = %.6f." % \
+              df_test['feature_missing_count'].mean()
+
+        return x_train, df_test
+
+    @staticmethod
+    def add_regionidzip_centroid_distance(x_train, df_test):
+        """
+        按regionidzip计算latitude&longitude的mean点，然后计算房屋距离中心点的距离，作为新增属性
+        :param x_train:
+        :param df_test:
+        :return:
+        """
+        print 'Feature add regionidzip centroid distance.'
         from geopy.distance import great_circle
-
-        x_train, df_test = self.x_train, self.df_test
 
         x_train['latitude'].replace(to_replace=-1, value=np.nan, inplace=True)
         x_train['longitude'].replace(to_replace=-1, value=np.nan, inplace=True)
@@ -137,7 +163,7 @@ class FeatureInteraction:
         x_train.fillna(-1, inplace=True)
         df_test.fillna(-1, inplace=True)
 
-        return self.x_train, self.df_test
+        return x_train, df_test
 
 
 def get_feature_importance_df(importance_type='gain'):

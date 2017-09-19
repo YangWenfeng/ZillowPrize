@@ -206,16 +206,23 @@ def explore_feature_scaler():
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
 def explore_feature_interaction():
-    # TODO
-    pass
+    x_train, y_train, df_test = get_train_test_data()
+
+    # add_feature_missing_count
+    x_train, df_test = FeatureInteraction.add_feature_missing_count(x_train.copy(), df_test.copy())
+
+    result = []
+    best_score, _ = xgboost_cross_validation(x_train, y_train)
+    result.append(['add_feature_missing_count', best_score])
+
+    print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
 def explore_feature_geo():
     """
     Local CV: 0.05264520
     """
     x_train, y_train, df_test = get_train_test_data()
-    fe_interaction = FeatureInteraction(x_train, df_test)
-    x_train, df_test = fe_interaction.add_regionidzip_centroid_distance()
+    x_train, df_test = FeatureInteraction.add_regionidzip_centroid_distance(x_train, df_test)
 
     result = []
     best_score, _ = xgboost_cross_validation(x_train, y_train)
@@ -225,8 +232,7 @@ def explore_feature_geo():
 
 def run_feature_geo():
     x_train, y_train, df_test = get_train_test_data()
-    fe_interaction = FeatureInteraction(x_train, df_test)
-    x_train, df_test = fe_interaction.add_regionidzip_centroid_distance()
+    x_train, df_test = FeatureInteraction.add_regionidzip_centroid_distance(x_train, df_test)
     best_score, num_boost_rounds = xgboost_cross_validation(
         x_train, y_train
     )
