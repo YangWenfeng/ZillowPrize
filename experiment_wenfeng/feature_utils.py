@@ -82,6 +82,64 @@ class OutlierEncoder:
 
         return new_series
 
+class FeatureInteraction:
+    def __init__(self, x_train, df_test):
+        self.x_train = x_train
+        self.df_test = df_test
+
+    def add_regionidzip_centroid_distance(self):
+        print 'Feature Add regionidzip centroid distance.'
+        from geopy.distance import great_circle
+
+        x_train, df_test = self.x_train, self.df_test
+
+        x_train['latitude'].replace(to_replace=-1, value=np.nan, inplace=True)
+        x_train['longitude'].replace(to_replace=-1, value=np.nan, inplace=True)
+        df_test['latitude'].replace(to_replace=-1, value=np.nan, inplace=True)
+        df_test['longitude'].replace(to_replace=-1, value=np.nan, inplace=True)
+
+        df = df_test[['regionidzip', 'latitude', 'longitude']]
+
+        latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
+        longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
+
+        def get_distance(regionidzip, latitude, longitude):
+            if regionidzip == -1 or regionidzip == np.nan:
+                return np.nan
+
+            latitude_mean = latitude_dict.get(regionidzip, np.nan)
+            longitude_mean = longitude_dict.get(regionidzip, np.nan)
+            if latitude == np.nan or longitude == np.nan or latitude_mean == np.nan or longitude_mean == np.nan:
+                return np.nan
+
+            ret = great_circle((latitude_mean/1e6, longitude_mean/1e6, ), (latitude/1e6, longitude/1e6, )).miles
+            return ret
+
+        x_train['regionidzip_centroid_distance'] = [
+            get_distance(z, lat, lng)
+            for z, lat, lng in zip(x_train['regionidzip'],
+                                   x_train['latitude'],
+                                   x_train['longitude'])
+            ]
+        df_test['regionidzip_centroid_distance'] = [
+            get_distance(z, lat, lng)
+            for z, lat, lng in zip(df_test['regionidzip'],
+                                   df_test['latitude'],
+                                   df_test['longitude'])
+            ]
+
+        # output
+        print 'x_train["regionidzip_centroid_distance"].mean() = %.6f' %\
+              x_train['regionidzip_centroid_distance'].mean()
+        print 'df_test["regionidzip_centroid_distance"].mean() = %.6f' %\
+              df_test['regionidzip_centroid_distance'].mean()
+
+        x_train.fillna(-1, inplace=True)
+        df_test.fillna(-1, inplace=True)
+
+        return self.x_train, self.df_test
+
+
 def get_feature_importance_df(importance_type='gain'):
     from xgboost_baseline import XGBoostModel
 
