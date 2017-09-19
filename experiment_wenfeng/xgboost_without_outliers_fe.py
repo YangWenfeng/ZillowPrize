@@ -44,8 +44,6 @@ def get_train_test_data():
 
     print('Encoding missing data.')
     for column in properties.columns:
-        if column in ['latitude', 'longitude']:
-            properties[column] /= 1e6
         properties[column].fillna(-1, inplace=True)
         if properties[column].dtype == 'object':
             label_encoder = LabelEncoder()
@@ -213,58 +211,73 @@ def explore_feature_interaction():
 
 def explore_feature_geo():
     """
-    Local CV: 0.05265520, 0.0526552
+    Local CV:
     """
-    from geopy.distance import great_circle, vincenty
+    from geopy.distance import great_circle
 
     x_train, y_train, df_test = get_train_test_data()
 
+    x_train = reset_nan(x_train, ['latitude', 'longitude'])
+    df_test = reset_nan(df_test, ['latitude', 'longitude'])
+
+    x_train['latitude'] /= 1e6
+    x_train['longitude'] /= 1e6
+    df_test['latitude'] /= 1e6
+    df_test['longitude'] /= 1e6
+
     df = df_test[['regionidzip', 'latitude', 'longitude']]
-    df = reset_nan(df, df.columns.values)
 
     latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
     longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
 
-    def get_distance(regionidzip, latitude, longitude, dist):
-        assert dist in ['great_circle', 'vincenty']
+    def get_distance(regionidzip, latitude, longitude):
+        if regionidzip == -1 or regionidzip == np.nan:
+            return np.nan
 
         latitude_mean = latitude_dict.get(regionidzip, np.nan)
         longitude_mean = longitude_dict.get(regionidzip, np.nan)
         if latitude == np.nan or longitude == np.nan or latitude_mean == np.nan or longitude_mean == np.nan:
             return np.nan
 
-        if dist == 'great_circle':
-            ret = great_circle((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
-        else:
-            ret = vincenty((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
+        ret = great_circle((latitude_mean, longitude_mean, ), (latitude, longitude, )).miles
         return ret
 
     result = []
-    for dist in ['great_circle', 'vincenty']:
-        x_train_new = x_train.copy()
-        x_train_new['regionidzip_centroid_distance'] = [
-            get_distance(z, lat, lng, dist)
-            for z, lat, lng in zip(x_train_new['regionidzip'],
-                                   x_train_new['latitude'],
-                                   x_train_new['longitude'])
-            ]
+    x_train['regionidzip_centroid_distance'] = [
+        get_distance(z, lat, lng)
+        for z, lat, lng in zip(x_train['regionidzip'],
+                               x_train['latitude'],
+                               x_train['longitude'])
+        ]
 
-        best_score, _ = xgboost_cross_validation(x_train_new, y_train)
-        result.append(['regionidzip_centroid_distance', dist, best_score])
+    print 'regionidzip_centroid_distance.mean is %.6f.' % x_train['regionidzip_centroid_distance'].mean()
+    best_score, _ = xgboost_cross_validation(x_train, y_train)
+    result.append(['regionidzip_centroid_distance', best_score])
 
     print '\n'.join(','.join([str(e) for e in one]) for one in result)
 
 def run_feature_geo():
-    from geopy.distance import great_circle
+    from geopy.distance import great_circle, vincenty
+
     x_train, y_train, df_test = get_train_test_data()
 
+    x_train = reset_nan(x_train, ['latitude', 'longitude'])
+    df_test = reset_nan(df_test, ['latitude', 'longitude'])
+
+    x_train['latitude'] /= 1e6
+    x_train['longitude'] /= 1e6
+    df_test['latitude'] /= 1e6
+    df_test['longitude'] /= 1e6
+
     df = df_test[['regionidzip', 'latitude', 'longitude']]
-    df = reset_nan(df, df.columns.values)
 
     latitude_dict = df.groupby(['regionidzip'])['latitude'].mean().to_dict()
     longitude_dict = df.groupby(['regionidzip'])['longitude'].mean().to_dict()
 
     def get_distance(regionidzip, latitude, longitude):
+        if regionidzip == -1 or regionidzip == np.nan:
+            return np.nan
+
         latitude_mean = latitude_dict.get(regionidzip, np.nan)
         longitude_mean = longitude_dict.get(regionidzip, np.nan)
         if latitude == np.nan or longitude == np.nan or latitude_mean == np.nan or longitude_mean == np.nan:
