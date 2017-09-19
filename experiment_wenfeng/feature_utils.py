@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 import common_utils as cu
+from mean_encoder import MeanEncoder
 
 class LabelCountEncoder:
     """
@@ -86,6 +87,22 @@ class OutlierEncoder:
 class FeatureInteraction:
     def __init__(self, flag=False):
         self.flag = flag
+
+    def do_mean_encoder(self, x_train, y_train, df_test):
+        # [220]	train-mae:0.05082	test-mae:0.0526292
+        # test-mae-mean = 0.05262340, PB 0.0645381
+
+        # MeanEncoder
+        mean_encoder = MeanEncoder(
+            categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
+            target_type='regression'
+        )
+
+        x_train = mean_encoder.fit_transform(x_train, y_train)
+        x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
+        df_test = mean_encoder.transform(df_test)
+
+        return x_train, y_train, df_test
 
     def add_feature_mod(self, x_train, df_test, col, num):
         """

@@ -53,6 +53,9 @@ def get_train_test_data():
             label_encoder.fit(list_value)
             properties[column] = label_encoder.transform(list_value)
 
+    # yearbuilt
+    properties['yearbuilt'] = 2016 - properties['yearbuilt']
+
     print('Combining training data with properties.')
     train_with_properties = train.merge(properties, how='left', on='parcelid')
     print('Original training data with properties shape: {}'
@@ -211,6 +214,9 @@ def explore_feature_scaler():
 def explore_feature_interaction():
     x_train, y_train, df_test = get_train_test_data()
 
+    print 'do_mean_encoder'
+    x_train, y_train, df_test = FeatureInteraction().do_mean_encoder(x_train, y_train, df_test)
+
     result = []
 
     print 'add_feature_missing_count'
@@ -312,21 +318,8 @@ def explore_feature_geo():
 def run_fe_merge():
     x_train, y_train, df_test = get_train_test_data()
 
-    # [220]	train-mae:0.05082	test-mae:0.0526292
-    # test-mae-mean = 0.05262340
-    # yearbuilt
-    x_train['yearbuilt'] = 2016 - x_train['yearbuilt']
-    df_test['yearbuilt'] = 2016 - df_test['yearbuilt']
-
-    # MeanEncoder
-    mean_encoder = MeanEncoder(
-        categorical_features=['regionidcity', 'regionidneighborhood', 'regionidzip'],
-        target_type='regression'
-    )
-
-    x_train = mean_encoder.fit_transform(x_train, y_train)
-    x_train = x_train.drop(mean_encoder.categorical_features, axis=1)
-    df_test = mean_encoder.transform(df_test)
+    print 'do_mean_encoder'
+    x_train, y_train, df_test = FeatureInteraction().do_mean_encoder(x_train, y_train, df_test)
 
     # LabelCountEncoder
     # for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
@@ -337,10 +330,12 @@ def run_fe_merge():
     #     df_test[col] = lce.transform(df_test[col])
 
     # add_feature_division
-    x_train, df_test = FeatureInteraction(True).add_feature_division(
-        x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
-    x_train, df_test = FeatureInteraction(True).add_feature_division(
-        x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
+    # [230]	train-mae:0.0507164	test-mae:0.0526378
+    # test-mae-mean = 0.05263020
+    # x_train, df_test = FeatureInteraction(True).add_feature_division(
+    #     x_train, df_test, 'landtaxvaluedollarcnt', 'lotsizesquarefeet')
+    # x_train, df_test = FeatureInteraction(True).add_feature_division(
+    #     x_train, df_test, 'taxamount', 'calculatedfinishedsquarefeet')
 
     best_score, num_boost_rounds = xgboost_cross_validation(
         x_train, y_train
