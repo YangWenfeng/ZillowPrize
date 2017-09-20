@@ -323,12 +323,12 @@ def run_fe_merge():
     x_train, y_train, df_test = FeatureInteraction().do_mean_encoder(x_train, y_train, df_test)
 
     # LabelCountEncoder
-    # for col in ['propertylandusetypeid', 'censustractandblock', 'buildingqualitytypeid',
-    #             'rawcensustractandblock']:
-    #     lce = LabelCountEncoder()
-    #     lce.fit(x_train[col])
-    #     x_train[col] = lce.transform(x_train[col])
-    #     df_test[col] = lce.transform(df_test[col])
+    # LabelCountEncoder_airconditioningtypeid,0.0526216
+    for col in ['airconditioningtypeid']:
+        lce = LabelCountEncoder()
+        lce.fit(x_train[col])
+        x_train[col] = lce.transform(x_train[col])
+        df_test[col] = lce.transform(df_test[col])
 
     # add_feature_division
     # [230]	train-mae:0.0507164	test-mae:0.0526378
