@@ -134,5 +134,5 @@ for j in range(folds):
 print('Saving predictions...')
 results = results_[sample_submission.columns]
 assert results.shape == sample_submission.shape
-results.to_csv('submission.csv', index = False, float_format = '%.6f')
+results.to_csv('../../data/simple_lightgbm.csv', index = False, float_format = '%.6f')
 print('Done!')
