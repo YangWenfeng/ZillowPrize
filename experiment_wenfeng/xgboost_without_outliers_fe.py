@@ -218,7 +218,9 @@ def explore_feature_interaction():
         print 'result', ','.join(str(e) for e in result[-1])
 
     print 'OutlierEncoder'
-    for col in ['taxamount', 'yearbuilt']:
+    for col in ['taxamount', 'yearbuilt', 'structuretaxvaluedollarcnt', 'lotsizesquarefeet',
+                'landtaxvaluedollarcnt', 'taxvaluedollarcnt', 'calculatedfinishedsquarefeet',
+                'finishedsquarefeet12']:
         for method in ['iqr', 'spe']:
             for replace in ['mean', 'median', 'boundary', 'nan']:
                 if replace == 'boundary' and method != 'iqr':
